@@ -1,9 +1,9 @@
-# \[Group name\]
+# Alt andet end lige
 
 **Group members:**
-- A
-- B
-- C
+- Nikoline 
+- Malthe
+- Asger
 
 This repository contains  
 1. Inaugural project. 
