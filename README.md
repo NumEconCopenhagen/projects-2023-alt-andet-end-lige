@@ -1,6 +1,5 @@
 # Alt andet end lige
-Hep hep
-hej hej
+
 **Group members:**
 - Nikoline 
 - Malthe
