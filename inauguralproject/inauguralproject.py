@@ -73,25 +73,14 @@ class HouseholdSpecializationModelClass:
         # a. consumption of market goods
         C = par.wM*LM + par.wF*LF
 
-        # b. home production
-        #def H(self, HM, HF):
-            #y = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**((par.sigma)/par.sigma-1) # function if else
-            #y[par.sigma == 0] = np.min(HM, HF) # function for sigma = 0
-            #y[par.sigma == 1] = HM**(1-par.alpha)*HF**par.alpha # function for sigma = 1
-            #return y
 
-        def H(self, HM, HF):
-            ''' Consumption of home produced goods'''
-            #a. Unpack
-            par = self.par
-        
-            #b. Return
-            if par.sigma == 0.: #minimum
-                return np.min(HM,HF)
-            elif par.sigma == 1.: #Cobb-Douglas
-                return HM**(1-par.alpha)*HF**par.alpha
-            else: #CES
-                return ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1))
+        #b. Return
+        if par.sigma == 0.: #minimum
+            H = np.min(HM,HF)
+        elif par.sigma == 1.: #Cobb-Douglas
+            H = HM**(1-par.alpha)*HF**par.alpha
+        else: #CES
+            H = ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1))
     
 
         # c. total consumption utility
