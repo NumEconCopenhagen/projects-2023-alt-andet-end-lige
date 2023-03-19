@@ -74,7 +74,12 @@ class HouseholdSpecializationModelClass:
         C = par.wM*LM + par.wF*LF
 
         # b. home production
-        H = HM**(1-par.alpha)*HF**par.alpha
+        def H(HM, HF):
+            y = ((1-par.alpha) * HM**((par.sigma-1)/par.sigma) + par.alpha * HF**((par.sigma-1)/par.sigma))**((par.sigma)/par.sigma-1) # function if else
+            y[par.sigma == 0] = np.min(HM, HF) # function for sigma = 0
+            y[par.sigma == 1] = HM**(1-par.alpha)*HF**par.alpha # function for sigma = 1
+            return y
+
 
         # c. total consumption utility
         Q = C**par.omega*H**(1-par.omega)
