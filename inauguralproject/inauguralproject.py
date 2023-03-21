@@ -133,15 +133,25 @@ class HouseholdSpecializationModelClass:
 
         return opt
 
-    def solve(self,do_print=False): #exc. 3
+
+
+
+    def solve_continous(self,do_print=False): #exc. 3
         """ solve model continously """
 
         pass    
 
-    def solve_wF_vec(self,discrete=False): 
+
+
+
+
+    def solve_wF_vec(self,discrete=False): #exc. 2
         """ solve model for vector of female wages """
 
         pass
+
+ 
+
 
     def run_regression(self):
         """ run regression """
