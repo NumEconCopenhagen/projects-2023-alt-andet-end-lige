@@ -139,11 +139,43 @@ class HouseholdSpecializationModelClass:
     def solve_continous(self,do_print=False): #exc. 3
         """ solve model continously """
 
-        pass    
+        par = self.par
+        sol = self.sol
+        opt = SimpleNamespace()
 
+        def objective(x):
+            LM, HM, LF, HF = x
+            return -self.calc_utility(LM, HM, LF, HF)
 
+        def contstraint_male(x): 
+            LM, HM, LF, HF = x
+            return 24-(LM-HM)
+    
+        def contstraint_female(x): 
+            LM, HM, LF, HF = x
+            return 24-(LF-HF)
 
+        constraints = ({'type': 'eq', 'fun': "constraint_male"},{'type': 'eq', 'fun': 'constraint_female'})
 
+        intial_guess = (12, 12, 12, 12)
+
+        bounds = ((0,24),(0,24),(0,24),(0,24))
+
+        result = optimize.minimize(objective, intial_guess, constraints=constraints, method = "SLSQP", bounds=bounds)
+        
+        # Setting the solution equal to the solution namespace:
+        opt.LM = sol.LM = result.x[0] 
+        opt.HM = sol.HM = result.x[1]
+        opt.LF = sol.LF = result.x[2]
+        opt.HF = sol.HF = result.x[3]
+        
+    # Printing result
+        if do_print:
+            for k,v in opt.__dict__.items():
+                print(f'{k} = {v:6.4f}')  
+        return opt
+    
+  
 
     def solve_wF_vec(self,discrete=False): #exc. 2
         """ solve model for vector of female wages """
