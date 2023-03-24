@@ -196,5 +196,8 @@ class HouseholdSpecializationModelClass:
     
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
+        par = self.par
+        sol = self.sol
+
         
         pass
