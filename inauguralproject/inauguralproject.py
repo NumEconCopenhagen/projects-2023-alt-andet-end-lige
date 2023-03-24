@@ -143,31 +143,27 @@ class HouseholdSpecializationModelClass:
         sol = self.sol
         opt = SimpleNamespace()
 
-        def objective(x):
-            LM, HM, LF, HF = x
-            return -self.calc_utility(LM, HM, LF, HF)
 
-        def contstraint_male(x): 
-            LM, HM, LF, HF = x
-            return 24-(LM-HM)
-    
-        def contstraint_female(x): 
-            LM, HM, LF, HF = x
-            return 24-(LF-HF)
+        # Objective function
+        obj = lambda x: -self.calc_utility(x[0],x[1],x[2],x[3])
 
-        constraints = ({'type': 'eq', 'fun': "constraint_male"},{'type': 'eq', 'fun': 'constraint_female'})
+        # Constraints and bounds
+        constraint_male = lambda x: 24 - x[0] - x[1]
+        constraint_female = lambda x: 24 - x[2] - x[3]
 
-        intial_guess = (12, 12, 12, 12)
+        constraints = [{'type': 'ineq', 'fun': constraint_male},{'type': 'ineq', 'fun': constraint_female}]
+
+        intial_guess = [12, 12, 12, 12] # Initial guess: both male and female member use equal amount of time on labor and home production
 
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
-        result = optimize.minimize(objective, intial_guess, constraints=constraints, method = "SLSQP", bounds=bounds)
+        result = optimize.minimize(obj, intial_guess, constraints=constraints, method = "Nelder-Mead", bounds=bounds)
         
         # Setting the solution equal to the solution namespace:
-        opt.LM = sol.LM = result.x[0] 
-        opt.HM = sol.HM = result.x[1]
-        opt.LF = sol.LF = result.x[2]
-        opt.HF = sol.HF = result.x[3]
+        opt.HM = result.x[1]
+        opt.LM = result.x[0] 
+        opt.LF = result.x[2]
+        opt.HF = result.x[3]
         
     # Printing result
         if do_print:
