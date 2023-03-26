@@ -175,10 +175,25 @@ class HouseholdSpecializationModelClass:
 
     def solve_wF_vec(self,discrete=False): #exc. 2
         """ solve model for vector of female wages """
+        par = self.par
+        sol = self.sol
+        
+        for i,wF in enumerate(par.wF_vec):
 
-        pass
+            self.par.wF = wF
 
- 
+            #Solve model
+            if discrete:
+                results = self.solve_discrete()
+            else:
+                results = self.solve_continous()
+
+            #Store results
+            sol.LF_vec[i] = results.LF
+            sol.HF_vec[i] = results.HF
+            sol.LM_vec[i] = results.LM
+            sol.HM_vec[i] = results.HM
+
 
 
     def run_regression(self):
@@ -197,7 +212,7 @@ class HouseholdSpecializationModelClass:
     def estimate(self, alpha=None, sigma=None):
         """ estimate alpha and sigma """
         pass
-    
+
 
 
 
