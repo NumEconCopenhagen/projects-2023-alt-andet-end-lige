@@ -157,7 +157,7 @@ class HouseholdSpecializationModelClass:
 
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
-        result = optimize.minimize(obj, intial_guess, constraints=constraints, method = "Nelder-Mead", bounds=bounds)
+        result = optimize.minimize(obj, intial_guess, constraints=constraints, method = "SLSQP", bounds=bounds)
         
         # Setting the solution equal to the solution namespace:
         opt.HM = sol.HM = result.x[1]
