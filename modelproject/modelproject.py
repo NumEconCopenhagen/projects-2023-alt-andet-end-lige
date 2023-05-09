@@ -11,17 +11,17 @@ class PrincipalAgent():
         sol = self.sol = SimpleNamespace()
 
         # baseline parameters
-        par.alpha = 0.5
+        par.alpha = 3.0
         par.q = 0.5
-        par.b_L = 3
+        par.b_L = 2.5
         par.b_H = 1
         par.y_L = 100
         par.y_H = 200
-        par.r_H = 35
-        par.r_L = 25
+        par.r_H = 70
+        par.r_L = 30
 
         # baseline settings
-        par.e_max = 20
+        par.e_max = 30
         par.N = 100
 
         # solutions
@@ -46,7 +46,7 @@ class PrincipalAgent():
     
     def f(self, e):
         "Increasing marginal utility cost from education"
-        return 0.02*e**2.2
+        return 0.04*e**2.2
     
     def u_L(self,w, e):
         """"Utility function for low-productive worker"""
@@ -116,7 +116,7 @@ class PrincipalAgent():
 
         # Utility in optimum
         uH = self.u_H(self.sol.w_H, self.sol.e_H)
-        uL = self.u_L(self.sol.w_H, self.sol.e_H)
+        uL = self.u_L(self.sol.w_L, self.sol.e_L)
 
         # allocate numpy arrays
         self.wH_vec = np.empty(self.par.N)
@@ -132,10 +132,17 @@ class PrincipalAgent():
                 return self.u_L(w,e)-uL
             
             sol_H = optimize.root(obj_H,0)
-            self.wH_vec[i] = sol_H.x[0]
-    
             sol_L = optimize.root(obj_L,0)
-            self.wL_vec[i] = sol_L.x[0]
+
+            if self.par.q == 0: # if only low-productives do not create indifference curve for high-productives
+                self.wH_vec[i] = np.nan
+            else:
+                self.wH_vec[i] = sol_H.x[0]
+    
+            if self.par.q == 1: # if only high-productive workers do not create indifference curve for low-productives
+                self.wL_vec[i] = np.nan
+            else:
+                self.wL_vec[i] = sol_L.x[0]
 
     def find_isoprofit_curves(self):
         # Profit in optimum that each of the worker types provides for the firm
@@ -155,55 +162,65 @@ class PrincipalAgent():
                 return self.R_L(e)-w-pi_L
             
             sol_H = optimize.root(obj_H,0)
-            self.wH_iso[i] = sol_H.x[0]
-    
             sol_L = optimize.root(obj_L,0)
-            self.wL_iso[i] = sol_L.x[0]
+
+            if self.par.q == 0: # if only low-productives do not create isoprofit line for high-productives
+                self.wH_iso[i] = np.nan
+            else:
+                self.wH_iso[i] = sol_H.x[0]
+            
+            if self.par.q == 1: # if only high-productive workers do not create isoprofit line for low-productives
+                self.wL_iso[i] = np.nan
+            else:
+                self.wL_iso[i] = sol_L.x[0]
 
 
 
     def plot_solutions(self,ax):
 
         ax.plot(self.sol.e_L,self.sol.w_L, 'ro') #low-produtvives
+        ax.text(self.sol.e_L,self.sol.w_L/1.4,f'$L^*$')
+
         ax.plot(self.sol.e_H,self.sol.w_H, 'ro') #high-productives
+        ax.text(self.sol.e_H,self.sol.w_H*1.08,f'$H^*$')
 
     def plot_indifference_curves(self,ax):
         
         # Plot for low-productives
-        ax.plot(self.e_vec,self.wL_vec)
+        ax.plot(self.e_vec,self.wL_vec, color="black")
 
         # Label for low-productives
         x, y = self.e_vec[-1], self.wL_vec[-1]
         ax.annotate("L", xy=(x, y), xytext=(5, -5), textcoords='offset points')
 
         # Plot for high-productives
-        ax.plot(self.e_vec,self.wH_vec)
+        ax.plot(self.e_vec,self.wH_vec, color="darkred")
 
         # Label for high-productives
         x, y = self.e_vec[-1], self.wH_vec[-1]
-        ax.annotate("H", xy=(x, y), xytext=(5, 5), textcoords='offset points')
+        ax.annotate("H", xy=(x, y), xytext=(5, -5), textcoords='offset points')
 
     def plot_isoprofit_curves(self,ax):
         # Plot for low-productives
-        ax.plot(self.e_vec,self.wL_iso, color='grey')
+        ax.plot(self.e_vec,self.wL_iso, color='grey', linestyle='dashed')
 
         # Label for low-productives
         x, y = self.e_vec[-1], self.wL_iso[-1]
         ax.annotate("Isoprofit_L", xy=(x, y), xytext=(5, -5), textcoords='offset points')
 
         # Plot for high-productives
-        ax.plot(self.e_vec,self.wH_iso, color='grey')
+        ax.plot(self.e_vec,self.wH_iso, color='grey', linestyle='dashed')
 
         # Label for high-productives
         x, y = self.e_vec[-1], self.wH_iso[-1]
-        ax.annotate("Isoprofit_H", xy=(x, y), xytext=(5, 5), textcoords='offset points')   
+        ax.annotate("Isoprofit_H", xy=(x, y), xytext=(5, -5), textcoords='offset points')   
 
     def plot_details(self,ax):
         ax.set_xlabel('$e$')
         ax.set_ylabel('$w$')
                 
-        ax.set_xlim([0,self.par.e_max+2])
-        ax.set_ylim([0,70])
+        ax.set_xlim([0,self.par.e_max+7])
+        ax.set_ylim([0,250])
 
         ax.grid(ls='--',lw=1)
 
