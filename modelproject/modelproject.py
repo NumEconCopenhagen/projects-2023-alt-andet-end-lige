@@ -113,11 +113,6 @@ class PrincipalAgent():
     
     # find indifference curves through optimum
     def find_indifference_curves(self):
-        
-        #allocate memory
-        self.e_vecs = []
-        self.w_vecs = []
-        self.us = []
 
         # Utility in optimum
         uH = self.u_H(self.sol.w_H, self.sol.e_H)
@@ -128,9 +123,9 @@ class PrincipalAgent():
         self.wL_vec = np.empty(self.par.N)
         self.e_vec = np.linspace(1e-8,self.par.e_max,self.par.N)
 
-        # Loop through e and find each w on same indifference curve as optimum
+        # Loop through e_vec and find each w on same indifference curve as optimum for each type of worker
         for i,e in enumerate(self.e_vec):
-
+            
             def obj_H(w):
                 return self.u_H(w,e)-uH
             def obj_L(w):
@@ -138,9 +133,32 @@ class PrincipalAgent():
             
             sol_H = optimize.root(obj_H,0)
             self.wH_vec[i] = sol_H.x[0]
-
+    
             sol_L = optimize.root(obj_L,0)
             self.wL_vec[i] = sol_L.x[0]
+
+    def find_isoprofit_curves(self):
+        # Profit in optimum that each of the worker types provides for the firm
+        pi_H = self.R_H(self.sol.e_H)-self.sol.w_H
+        pi_L = self.R_L(self.sol.e_L)-self.sol.w_L
+
+        # Allocate numpy arrays 
+        self.wH_iso = np.empty(self.par.N)
+        self.wL_iso = np.empty(self.par.N)
+
+        # Loop through e_vec and find each w on same isoprofit curve as optimum for each type of worker
+        for i,e in enumerate(self.e_vec):
+            
+            def obj_H(w):
+                return self.R_H(e)-w-pi_H
+            def obj_L(w):
+                return self.R_L(e)-w-pi_L
+            
+            sol_H = optimize.root(obj_H,0)
+            self.wH_iso[i] = sol_H.x[0]
+    
+            sol_L = optimize.root(obj_L,0)
+            self.wL_iso[i] = sol_L.x[0]
 
 
 
@@ -165,6 +183,21 @@ class PrincipalAgent():
         x, y = self.e_vec[-1], self.wH_vec[-1]
         ax.annotate("H", xy=(x, y), xytext=(5, 5), textcoords='offset points')
 
+    def plot_isoprofit_curves(self,ax):
+        # Plot for low-productives
+        ax.plot(self.e_vec,self.wL_iso, color='grey')
+
+        # Label for low-productives
+        x, y = self.e_vec[-1], self.wL_iso[-1]
+        ax.annotate("Isoprofit_L", xy=(x, y), xytext=(5, -5), textcoords='offset points')
+
+        # Plot for high-productives
+        ax.plot(self.e_vec,self.wH_iso, color='grey')
+
+        # Label for high-productives
+        x, y = self.e_vec[-1], self.wH_iso[-1]
+        ax.annotate("Isoprofit_H", xy=(x, y), xytext=(5, 5), textcoords='offset points')   
+
     def plot_details(self,ax):
         ax.set_xlabel('$e$')
         ax.set_ylabel('$w$')
@@ -180,7 +213,7 @@ class PrincipalAgent():
         ax = fig.add_subplot(1,1,1)
 
         self.plot_indifference_curves(ax)
-        #self.plot_budgetset(ax)
+        self.plot_isoprofit_curves(ax)
         self.plot_solutions(ax)
         self.plot_details(ax)
 
