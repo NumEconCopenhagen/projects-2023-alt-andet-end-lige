@@ -19,21 +19,64 @@ class PrincipalAgent():
         par.y_H = 200
         par.r_H = 70
         par.r_L = 30
-        par.rho = 2.0
-        par.delta = 0.0
+
 
         # baseline settings
         par.e_max = 30
         par.N = 100
 
         # solutions
+        sol.w = np.nan
         sol.w_L = np.nan
         sol.w_H = np.nan
         sol.e_L = np.nan
         sol.e_H = np.nan
 
-        
 
+    ################ Adverse selection ################
+
+    # profit function
+    def profits_one(self, w):
+        return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_H-w)
+
+    # Define objective function and constraints
+    def objective_one(self, x):
+        """Objective function to minimize"""
+        return -self.profits_one(x)
+    
+    def ineq_IR_H_one(self, x):
+        """Individual rationality constraint for high-productives"""
+        return x-self.par.r_H
+    
+    def ineq_IR_L_one(self, x):
+        """Individual rationality constraint for low-productives"""
+        return x-self.par.r_L
+
+    # Solve model whem firm cannot condition on education level
+    def solve_one(self):
+        par = self.par
+        sol = self.sol
+
+      #setup
+        bounds = [(0.0,np.inf)]
+        IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H_one} 
+        IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L_one}
+
+        # call optimizer
+        x0 = par.y_L
+        results = optimize.minimize(self.objective_one, x0, 
+                                   method='SLSQP', 
+                                   bounds=bounds, 
+                                   constraints = [IR_H, IR_L])
+        
+        # save
+        sol.w = results.x[0]
+
+   
+
+        
+      
+    ############### Firms can condition on education level #############
     def R_L(self,e):
         """Revenue from low-productive workers"""
         return self.par.y_L+self.par.alpha*e
@@ -83,8 +126,8 @@ class PrincipalAgent():
         return self.u_L(x[0],x[1])-self.u_L(x[2],x[3])
     
 
-    # Solve model
 
+    # Solve model when firm observes education level
     def solve(self):
 
         par = self.par
@@ -253,10 +296,9 @@ class PrincipalAgent():
 
     def u_H_alt(self,w, e):
         """Utility function for high-productive worker"""
-        return w**(1-self.par.rho)/(1-self.par.rho)-self.par.b_H*self.f(e)
+        return w**(1+self.par.rho)/(1+self.par.rho)-self.par.b_H*self.f(e)
 
-
-
+    # Firm's return on education now also depend on delta
     def R_L_alt(self,e):
         """Revenue from low-productive workers"""
         return self.par.y_L+(self.par.alpha+self.par.delta)*e
@@ -296,6 +338,10 @@ class PrincipalAgent():
         return self.u_L_alt(x[0],x[1])-self.u_L_alt(x[2],x[3])
     
     
+
+
+
+
     def solve_principal_one(self):
 
         par = self.par
