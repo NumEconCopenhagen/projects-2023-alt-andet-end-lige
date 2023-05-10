@@ -69,7 +69,7 @@ class PrincipalAgent():
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L])
         
-        # save
+        # compare
         sol.w = results.x[0]
 
    
