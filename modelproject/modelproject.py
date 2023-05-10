@@ -336,7 +336,7 @@ class PrincipalAgent():
     def ineq_IC_L_alt(self, x):
         """Incentive compatibility constraint for low-productives"""
         return self.u_L_alt(x[0],x[1])-self.u_L_alt(x[2],x[3])
-    
+     
     
 
 
