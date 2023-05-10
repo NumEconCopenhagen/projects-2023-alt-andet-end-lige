@@ -30,9 +30,9 @@ class PrincipalAgent():
         sol.e_L = np.nan
         sol.e_H = np.nan
         
-    def update_q(self, q):
-    """Update the value of q"""
-    self.par.q = q
+        def update_q(self, q):
+            """Update the value of q""" 
+            self.par.q = q
 
         
 
