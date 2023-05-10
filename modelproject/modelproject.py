@@ -273,6 +273,28 @@ class PrincipalAgent():
         "Increasing marginal utility cost from education"
         return 0.04*e**2.2
     
+
+     # Define objective and constraints
+    def objective_alt(self, x):
+        """Objective function to minimize"""
+        return -self.profits(x[0],x[1],x[2],x[3])
+    
+    def ineq_IR_H_alt(self, x):
+        """Individual rationality constraint for high-productives"""
+        return self.u_H_alt(x[2],x[3])-self.par.r_H
+    
+    def ineq_IR_L_alt(self, x):
+        """Individual rationality constraint for low-productives"""
+        return self.u_L_alt(x[0],x[1])-self.par.r_L
+
+    def ineq_IC_H_alt(self, x):
+        """Incentive compatibility constraint for high-productives"""
+        return self.u_H_alt(x[2],x[3])-self.u_H_alt(x[0],x[1])
+    
+    def ineq_IC_L_alt(self, x):
+        """Incentive compatibility constraint for low-productives"""
+        return self.u_L_alt(x[0],x[1])-self.u_L_alt(x[2],x[3])
+    
     
     def solve_principal_one(self):
 
