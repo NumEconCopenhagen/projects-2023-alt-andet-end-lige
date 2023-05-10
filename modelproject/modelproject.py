@@ -69,8 +69,20 @@ class PrincipalAgent():
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L])
         
-        # compare
-        sol.w = results.x[0]
+        # compare solutions
+        if self.par.r_H>=self.par.y_H & self.par.r_L>=self.par.y_L:
+            sol.w = 0
+
+        elif self.par.r_H>=self.par.y_H & self.par.r_L<self.par.y_L:
+            sol.w = self.par.r_L
+
+        elif self.par.r_H<self.par.y_H & self.par.r_L>=self.par.y_L:
+            if self.par.q(self.par.y_H-self.par.r_H)>(1-self.par.q)(self.par.r_H-self.par.y_H):
+                sol.w = self.par.r_H
+            else:
+                sol.w = 0
+        else:
+            sol.w = results.x[0]
 
    
 
