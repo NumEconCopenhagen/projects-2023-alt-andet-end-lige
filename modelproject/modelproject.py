@@ -19,6 +19,8 @@ class PrincipalAgent():
         par.y_H = 200
         par.r_H = 70
         par.r_L = 30
+        par.rho = 2.0
+        par.delta = 0.0
 
         # baseline settings
         par.e_max = 30
@@ -178,11 +180,17 @@ class PrincipalAgent():
 
     def plot_solutions(self,ax):
 
-        ax.plot(self.sol.e_L,self.sol.w_L, 'ro') #low-produtvives
-        ax.text(self.sol.e_L,self.sol.w_L/1.4,f'$L^*$')
+        if self.par.q == 1:
+            pass
+        else:
+            ax.plot(self.sol.e_L,self.sol.w_L, 'ro') #low-produtvives
+            ax.text(self.sol.e_L,self.sol.w_L/1.4,f'$L^*$')
 
-        ax.plot(self.sol.e_H,self.sol.w_H, 'ro') #high-productives
-        ax.text(self.sol.e_H,self.sol.w_H*1.08,f'$H^*$')
+        if self.par.q == 0:
+            pass
+        else:
+            ax.plot(self.sol.e_H,self.sol.w_H, 'ro') #high-productives
+            ax.text(self.sol.e_H,self.sol.w_H*1.08,f'$H^*$')
 
     def plot_indifference_curves(self,ax):
         
@@ -236,6 +244,63 @@ class PrincipalAgent():
 
 
 
+    ##################### Introducing risk ##########################
+    
+    # Workers are risk averse
+    def u_L_alt(self,w, e):
+        """"Utility function for low-productive worker"""
+        return w**(1-self.par.rho)/(1-self.par.rho)-self.par.b_L*self.f(e)
+
+    def u_H_alt(self,w, e):
+        """Utility function for high-productive worker"""
+        return w**(1-self.par.rho)/(1-self.par.rho)-self.par.b_H*self.f(e)
+
+
+
+    def R_L_alt(self,e):
+        """Revenue from low-productive workers"""
+        return self.par.y_L+(self.par.alpha+self.par.delta)*e
+    
+    def R_H_alt(self,e):
+        """Revenue from low-productive workers"""
+        return self.par.y_H+(self.par.alpha+self.par.delta)*e  
+
+    def profits_alt(self, w_L, e_L, w_H, e_H):
+        """Firm's profit function"""
+        return self.par.q*(self.R_H_alt(e_H) - w_H) + (1-self.par.q)*(self.R_L_alt(e_L)-w_L)
+    
+    def f(self, e):
+        "Increasing marginal utility cost from education"
+        return 0.04*e**2.2
+    
+    
+    def solve_principal_one(self):
+
+        par = self.par
+        sol = self.sol
+
+        #setup
+        bounds = ((0.0,np.inf),(0.0,par.e_max),(0.0,np.inf),(0.0,par.e_max)) #you cannot take an infinitely long education
+        IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H} 
+        IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L}
+        IC_H ={'type': 'ineq', 'fun': self.ineq_IC_H}  
+        IC_L ={'type': 'ineq', 'fun': self.ineq_IC_L} 
+
+        # call optimizer
+        x0 = (par.y_L, 10.0, par.y_H, 15.0)
+        results = optimize.minimize(self.objective, x0, 
+                                   method='SLSQP', 
+                                   bounds=bounds, 
+                                   constraints = [IR_H, IR_L, IC_H, IC_L])
+        
+        # save
+        sol.w_L = results.x[0]
+        sol.e_L = results.x[1]
+        sol.w_H = results.x[2]
+        sol.e_H = results.x[3]
+
+
+
 
 
 
@@ -253,33 +318,6 @@ class PrincipalAgent():
  
 
 
-
-
-
-
-
-
-
-def solve_ss(alpha, c):
-    """ Example function. Solve for steady state k. 
-
-    Args:
-        c (float): costs
-        alpha (float): parameter
-
-    Returns:
-        result (RootResults): the solution represented as a RootResults object.
-
-    """ 
-    
-    # a. Objective function, depends on k (endogenous) and c (exogenous).
-    f = lambda k: k**alpha - c
-    obj = lambda kss: kss - f(kss)
-
-    #. b. call root finder to find kss.
-    result = optimize.root_scalar(obj,bracket=[0.1,100],method='bisect')
-    
-    return result
 
 
 
