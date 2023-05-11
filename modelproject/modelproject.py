@@ -37,7 +37,12 @@ class PrincipalAgent():
 
     # profit function
     def profits_one(self, w):
-        return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_H-w)
+        if w < self.par.r_H and w<self.par.r_L:
+            return 0
+        elif w < self.par.r_H:
+            return self.par.y_L-w
+        else:
+            return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_L-w)
 
     # Define objective function and constraints
     def objective_one(self, x):
@@ -69,21 +74,21 @@ class PrincipalAgent():
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L])
         
-        # compare solutions
-        if self.par.r_H>=self.par.y_H & self.par.r_L>=self.par.y_L:
-            sol.w = 0
-
-        elif self.par.r_H>=self.par.y_H & self.par.r_L<self.par.y_L:
-            sol.w = self.par.r_L
-
-        elif self.par.r_H<self.par.y_H & self.par.r_L>=self.par.y_L:
-            if self.par.q(self.par.y_H-self.par.r_H)>(1-self.par.q)(self.par.r_H-self.par.y_H):
-                sol.w = self.par.r_H
+        
+        # compare profits 
+        if self.profits_one(results.x[0])>=self.profits_one(self.par.r_L):
+            if self.profits_one(results.x[0])>=0:
+                sol.w = results.x[0]
             else:
                 sol.w = 0
         else:
-            sol.w = results.x[0]
+            if self.profits_one(self.par.r_L)>=0:
+                sol.w = self.par.r_L
+            else:
+                sol.w = 0
 
+                
+                            
    
 
         
