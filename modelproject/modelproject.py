@@ -40,7 +40,7 @@ class PrincipalAgent():
         if w < self.par.r_H and w<self.par.r_L:
             return 0
         elif w < self.par.r_H:
-            return self.par.y_L-w
+            return (1-self.par.q)(self.par.y_L-w)
         else:
             return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_L-w)
 
@@ -101,10 +101,6 @@ class PrincipalAgent():
     def R_H(self,e):
         """Revenue from low-productive workers"""
         return self.par.y_H+self.par.alpha*e  
-
-    def profits(self, w_L, e_L, w_H, e_H):
-        """Firm's profit function"""
-        return self.par.q*(self.R_H(e_H) - w_H) + (1-self.par.q)*(self.R_L(e_L)-w_L)
     
     def f(self, e):
         "Increasing marginal utility cost from education"
@@ -118,6 +114,16 @@ class PrincipalAgent():
         """Utility function for high-productive worker"""
         return w-self.par.b_H*self.f(e)
     
+    def profits(self, w_L, e_L, w_H, e_H):
+        """Firm's profit function"""
+        if self.u_H(w_H, e_H) < self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
+            return 0
+        elif self.u_H(w_H,e_H) < self.par.r_H and self.u_L(w_L,e_L)>=self.par.r_L:
+            return (1-self.par.q)(self.par.y_L-w_L)
+        elif self.u_H(w_H,e_H) >= self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
+            return self.par.q*(self.par.y_H - w_H)
+        else:
+            return self.par.q*(self.par.y_H - w_H) + (1-self.par.q)*(self.par.y_L-w_L)
 
 
     
@@ -156,14 +162,16 @@ class PrincipalAgent():
         IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L}
         IC_H ={'type': 'ineq', 'fun': self.ineq_IC_H}  
         IC_L ={'type': 'ineq', 'fun': self.ineq_IC_L} 
-        
+
         # call optimizer
-        x0 = (par.y_L, 10.0, par.y_H, 15.0)
+        x0 = (par.y_L, 10.0, par.y_H, 15.0) # initial guess
+
+        # Optimal contract when we design contracts accepted by both workers
         results = optimize.minimize(self.objective, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L, IC_H, IC_L])
-        
+                
         # save
         sol.w_L = results.x[0]
         sol.e_L = results.x[1]
@@ -304,97 +312,8 @@ class PrincipalAgent():
 
 
 
-    ##################### Introducing risk ##########################
-    
-    # Workers are risk averse
-    def u_L_alt(self,w, e):
-        """"Utility function for low-productive worker"""
-        return w**(1-self.par.rho)/(1-self.par.rho)-self.par.b_L*self.f(e)
-
-    def u_H_alt(self,w, e):
-        """Utility function for high-productive worker"""
-        return w**(1+self.par.rho)/(1+self.par.rho)-self.par.b_H*self.f(e)
-
-    # Firm's return on education now also depend on delta
-    def R_L_alt(self,e):
-        """Revenue from low-productive workers"""
-        return self.par.y_L+(self.par.alpha+self.par.delta)*e
-    
-    def R_H_alt(self,e):
-        """Revenue from low-productive workers"""
-        return self.par.y_H+(self.par.alpha+self.par.delta)*e  
-
-    def profits_alt(self, w_L, e_L, w_H, e_H):
-        """Firm's profit function"""
-        return self.par.q*(self.R_H_alt(e_H) - w_H) + (1-self.par.q)*(self.R_L_alt(e_L)-w_L)
-    
-    def f(self, e):
-        "Increasing marginal utility cost from education"
-        return 0.04*e**2.2
-    
-
-     # Define objective and constraints
-    def objective_alt(self, x):
-        """Objective function to minimize"""
-        return -self.profits(x[0],x[1],x[2],x[3])
-    
-    def ineq_IR_H_alt(self, x):
-        """Individual rationality constraint for high-productives"""
-        return self.u_H_alt(x[2],x[3])-self.par.r_H
-    
-    def ineq_IR_L_alt(self, x):
-        """Individual rationality constraint for low-productives"""
-        return self.u_L_alt(x[0],x[1])-self.par.r_L
-
-    def ineq_IC_H_alt(self, x):
-        """Incentive compatibility constraint for high-productives"""
-        return self.u_H_alt(x[2],x[3])-self.u_H_alt(x[0],x[1])
-    
-    def ineq_IC_L_alt(self, x):
-        """Incentive compatibility constraint for low-productives"""
-        return self.u_L_alt(x[0],x[1])-self.u_L_alt(x[2],x[3])
-     
-    
 
 
-
-
-    def solve_principal_one(self):
-
-        par = self.par
-        sol = self.sol
-
-        #setup
-        bounds = ((0.0,np.inf),(0.0,par.e_max),(0.0,np.inf),(0.0,par.e_max)) #you cannot take an infinitely long education
-        IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H} 
-        IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L}
-        IC_H ={'type': 'ineq', 'fun': self.ineq_IC_H}  
-        IC_L ={'type': 'ineq', 'fun': self.ineq_IC_L} 
-
-        # call optimizer
-        x0 = (par.y_L, 10.0, par.y_H, 15.0)
-        results = optimize.minimize(self.objective, x0, 
-                                   method='SLSQP', 
-                                   bounds=bounds, 
-                                   constraints = [IR_H, IR_L, IC_H, IC_L])
-        
-        # save
-        sol.w_L = results.x[0]
-        sol.e_L = results.x[1]
-        sol.w_H = results.x[2]
-        sol.e_H = results.x[3]
-
-
-
-
-
-
-
-
-
-
-
-    
 
 
 
