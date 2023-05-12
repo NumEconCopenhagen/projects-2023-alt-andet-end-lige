@@ -156,7 +156,7 @@ class PrincipalAgent():
         IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L}
         IC_H ={'type': 'ineq', 'fun': self.ineq_IC_H}  
         IC_L ={'type': 'ineq', 'fun': self.ineq_IC_L} 
-
+        
         # call optimizer
         x0 = (par.y_L, 10.0, par.y_H, 15.0)
         results = optimize.minimize(self.objective, x0, 
