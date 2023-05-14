@@ -40,7 +40,7 @@ class PrincipalAgent():
         if w < self.par.r_H and w<self.par.r_L:
             return 0
         elif w < self.par.r_H:
-            return (1-self.par.q)(self.par.y_L-w)
+            return (1-self.par.q)*(self.par.y_L-w)
         else:
             return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_L-w)
 
@@ -119,11 +119,11 @@ class PrincipalAgent():
         if self.u_H(w_H, e_H) < self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
             return 0
         elif self.u_H(w_H,e_H) < self.par.r_H and self.u_L(w_L,e_L)>=self.par.r_L:
-            return (1-self.par.q)(self.par.y_L-w_L)
+            return (1-self.par.q)*(self.R_L(e_L)-w_L)
         elif self.u_H(w_H,e_H) >= self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
-            return self.par.q*(self.par.y_H - w_H)
+            return self.par.q*(self.R_H(e_H) - w_H)
         else:
-            return self.par.q*(self.par.y_H - w_H) + (1-self.par.q)*(self.par.y_L-w_L)
+            return self.par.q*(self.R_H(e_H) - w_H) + (1-self.par.q)*(self.R_L(e_L)-w_L)
 
 
     
@@ -311,7 +311,7 @@ class PrincipalAgent():
         self.plot_details(ax)
 
 
-
+################ n different types of consumers ###################
 
 
 
