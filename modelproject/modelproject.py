@@ -335,13 +335,13 @@ class PrincipalAgent():
         sol.e_vec = np.zeros(ext.n) # optimal education levels in extended model
 
         # Draw random values from a uniform distribution of productivity levels in the interval from 50 to 300
-        np.random.seed(999)
-        ext.y_vec = np.random.uniform(50.0,300.0,size=ext.n)
+        np.random.seed(40)
+        ext.y_vec = np.random.uniform(10.0,350.0,size=ext.n)
         ext.y_vec.sort()
 
         # Draw random values of disutility from education between 0.1 and 3.0. 
             # We assume that disutility from education and worker's productivity level are negatively correlated
-        ext.b_vec = np.random.uniform(1.0,3.0,size=ext.n)
+        ext.b_vec = np.random.uniform(1.0,3.5,size=ext.n)
         ext.b_vec[::-1].sort() #sorts in descending order
 
         # For simplicity we assume that the outside option is smaller than the productivity level and that it increases in the productivity level
@@ -366,7 +366,7 @@ class PrincipalAgent():
             if self.u(self.ext.b_vec[i],args[i],args[i+self.ext.n]) >= self.ext.r_vec[i]:
                 profits += pi_i
             else:
-                pass
+                continue
 
         return profits
     
@@ -385,7 +385,6 @@ class PrincipalAgent():
         sol = self.sol
         ext = self.ext
 
-        self.setup_many() #call on model setup
 
         # bounds for solution variables
         bounds_w = [(0.0, np.inf) for _ in range(ext.n)] # wage must be non-negative
@@ -403,7 +402,7 @@ class PrincipalAgent():
 
             for j in range(ext.n):
                 if j == i:
-                    pass
+                    continue
                 else:
                     constraints.append({'type': 'ineq', 'fun': lambda x, i=i, j=j: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - self.u(ext.b_vec[i], x[j], x[j+ext.n]), 'jac': None}) # IC_i constraints
         
@@ -411,7 +410,7 @@ class PrincipalAgent():
 
         # The initial guess must now be a list of 2*n elements, 
                 # where the first n elements are guesses on w_vec and the last n elements are guesses on e_vec
-        w0_vec = ext.y_vec
+        w0_vec = ext.y_vec[:] # copy of y_vec
         e0_vec = np.linspace(0.0,25.0,num=ext.n)
         x0 = list(np.concatenate((w0_vec,e0_vec)))
 
