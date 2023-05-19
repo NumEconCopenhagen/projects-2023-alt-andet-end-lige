@@ -7,8 +7,9 @@ class PrincipalAgent():
     def __init__(self):
         """Create the model"""
         # namespaces
-        par = self.par = SimpleNamespace()
-        sol = self.sol = SimpleNamespace()
+        par = self.par = SimpleNamespace() # namespace for parameters
+        sol = self.sol = SimpleNamespace() #namespace for solutions
+        ext = self.ext = SimpleNamespace() # namespace for extension with many agents
 
         # baseline parameters
         par.alpha = 3.0
@@ -19,10 +20,10 @@ class PrincipalAgent():
         par.y_H = 200
         par.r_H = 70
         par.r_L = 30
-
+        
 
         # baseline settings
-        par.e_max = 30
+        par.e_max = 30 #maximum years of education
         par.N = 100
 
         # solutions
@@ -31,6 +32,8 @@ class PrincipalAgent():
         sol.w_H = np.nan
         sol.e_L = np.nan
         sol.e_H = np.nan
+
+
 
 
     ################ Adverse selection ################
@@ -57,7 +60,7 @@ class PrincipalAgent():
         """Individual rationality constraint for low-productives"""
         return x-self.par.r_L
 
-    # Solve model whem firm cannot condition on education level
+    # Solve model whem firms can only offer one contract for both worker types
     def solve_one(self):
         par = self.par
         sol = self.sol
@@ -93,7 +96,7 @@ class PrincipalAgent():
 
         
       
-    ############### Firms can condition on education level #############
+    ############### Firms can now condition on education level and hence offer two types of contracts #############
     def R_L(self,e):
         """Revenue from low-productive workers"""
         return self.par.y_L+self.par.alpha*e
@@ -177,6 +180,7 @@ class PrincipalAgent():
         sol.e_L = results.x[1]
         sol.w_H = results.x[2]
         sol.e_H = results.x[3]
+
 
 
     ########## Plot solutions ############
@@ -311,7 +315,121 @@ class PrincipalAgent():
         self.plot_details(ax)
 
 
-################ n different types of consumers ###################
+
+
+
+################ n different types of workers ###################
+    def setup_many(self):
+        """Setup for model with many agents"""
+
+        # Call on namespaces
+        par = self.par
+        sol = self.sol
+        ext = self.ext
+
+        # number of agents
+        ext.n = 10
+
+        # Allocate arrays for solutions
+        sol.w_vec = np.zeros(ext.n) # optimal wages in extended model
+        sol.e_vec = np.zeros(ext.n) # optimal education levels in extended model
+
+        # Draw random values from a uniform distribution of productivity levels in the interval from 50 to 300
+        np.random.seed(999)
+        ext.y_vec = np.random.uniform(50.0,300.0,size=ext.n)
+        ext.y_vec.sort()
+
+        # Draw random values of disutility from education between 0.1 and 3.0. 
+            # We assume that disutility from education and worker's productivity level are negatively correlated
+        ext.b_vec = np.random.uniform(1.0,3.0,size=ext.n)
+        ext.b_vec[::-1].sort() #sorts in descending order
+
+        # For simplicity we assume that the outside option is smaller than the productivity level and that it increases in the productivity level
+        ext.r_vec = ext.y_vec*0.3
+
+        # Draw random shares of different worker types
+        ext.q_vec = np.random.uniform(0.0,1.0,size=ext.n)
+        ext.q_vec /= np.sum(ext.q_vec)
+
+
+
+    def u(self,b,w,e):
+        return w-b*self.f(e)
+    
+    def profits_many(self, *args):
+        """Firm's profit function"""
+        profits = 0.0
+        
+        for i in range(self.ext.n):
+            pi_i = self.ext.q_vec[i]*(self.ext.y_vec[i]+self.par.alpha*args[i+self.ext.n]-args[i])
+
+            if self.u(self.ext.b_vec[i],args[i],args[i+self.ext.n]) >= self.ext.r_vec[i]:
+                profits += pi_i
+            else:
+                pass
+
+        return profits
+    
+    # Define objective function
+
+    def objective_many(self, x):
+        """Objective function to minimize"""
+        return -self.profits_many(*x)
+
+
+
+    # Solve the model
+    def solve_many(self):
+
+        par = self.par
+        sol = self.sol
+        ext = self.ext
+
+        self.setup_many() #call on model setup
+
+        # bounds for solution variables
+        bounds_w = [(0.0, np.inf) for _ in range(ext.n)] # wage must be non-negative
+        bounds_e = [(0.0, par.e_max) for _ in range(ext.n)] # education is non-negative and there is a limit on how high education you can take
+        bounds = bounds_w + bounds_e 
+
+
+        # define constraints
+        constraints = [] # construct empty list of constraints
+        # For each type of worker, we now append the IR constraint of the worker 
+                # and all the n-1 IC constraints of this worker to the list of constraints
+        for i in range(ext.n):
+            constraints.append({'type': 'ineq', 'fun': lambda x, i=i: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - ext.r_vec[i], 'jac': None}) # IR_i constraint
+                                                            # note that x[0][i] is worker i's wage and x[1][i] is his education level
+
+            for j in range(ext.n):
+                if j == i:
+                    pass
+                else:
+                    constraints.append({'type': 'ineq', 'fun': lambda x, i=i, j=j: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - self.u(ext.b_vec[i], x[j], x[j+ext.n]), 'jac': None}) # IC_i constraints
+        
+
+
+        # The initial guess must now be a list of 2*n elements, 
+                # where the first n elements are guesses on w_vec and the last n elements are guesses on e_vec
+        w0_vec = ext.y_vec
+        e0_vec = np.linspace(0.0,25.0,num=ext.n)
+        x0 = list(np.concatenate((w0_vec,e0_vec)))
+
+        # Optimal contract when we design contracts accepted by both workers
+        results = optimize.minimize(self.objective_many, x0, 
+                                   method='SLSQP', 
+                                   bounds = bounds,
+                                   constraints = constraints)
+                
+        # save results
+        for i in range(ext.n):
+            sol.w_vec[i] = results.x[i]
+            sol.e_vec[i] = results.x[i+ext.n]
+
+
+        
+
+
 
 
 
