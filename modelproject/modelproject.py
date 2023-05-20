@@ -26,6 +26,9 @@ class PrincipalAgent():
         par.e_max = 30 #maximum years of education
         par.N = 100
 
+        # number of agents in extended model
+        ext.n = 10
+
         # solutions
         sol.w = np.nan
         sol.w_L = np.nan
@@ -175,11 +178,61 @@ class PrincipalAgent():
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L, IC_H, IC_L])
                 
-        # save
-        sol.w_L = results.x[0]
-        sol.e_L = results.x[1]
-        sol.w_H = results.x[2]
-        sol.e_H = results.x[3]
+        ### Compare profit in inner solution with contracts where principal only offers a single contract ###
+
+        # Optimal contract when principal offers a single contract that only low productivity workers accepts
+        results_low = optimize.minimize(self.objective, x0, 
+                                   method='SLSQP', 
+                                   bounds=bounds, 
+                                   constraints = [IR_L, {'type': 'eq', 'fun': lambda x: x[2]}, {'type': 'eq', 'fun': lambda x: x[3]}])
+        
+        # Optimal constract when principal offers a single contract that only high productivity workers are willing to accept
+        results_high = optimize.minimize(self.objective, x0, 
+                                   method='SLSQP', 
+                                   bounds=bounds, 
+                                   constraints = [IR_H, {'type': 'eq', 'fun': lambda x: x[0]}, 
+                                                  {'type': 'eq', 'fun': lambda x: x[1]},
+                                                  {'type': 'ineq', 'fun': lambda x: self.par.r_L-self.u_L(x[2],x[3])}])
+        
+
+        
+        # Compare profits for different solutions and choose the contract prodiving the highest profit
+
+        # Calculate profit for best alternative to the inner solution
+        best_alt = max(self.profits(results_high.x[0], results_high.x[1],results_high.x[2],results_high.x[3]), 
+                    self.profits(results_low.x[0], results_low.x[1],results_low.x[2],results_low.x[3]))    
+
+        # If inner solution implies positive and higher profits than best alternative -> set inner solution as solution
+        if self.profits(results.x[0], results.x[1],results.x[2],results.x[3])>=best_alt:
+            if self.profits(results.x[0], results.x[1],results.x[2],results.x[3])>0:
+                sol.w_L = results.x[0]
+                sol.e_L = results.x[1]
+                sol.w_H = results.x[2]
+                sol.e_H = results.x[3] 
+            else:
+                sol.w_L = 0.0
+                sol.e_L = 0.0
+                sol.w_H = 0.0
+                sol.e_H = 0.0
+
+        else: # if best alternative implies positive and higher profits than inner solution -> set best alternative as solution  
+            if best_alt>0:
+                if self.profits(results_high.x[0], results_high.x[1],results_high.x[2],results_high.x[3])>=self.profits(results_low.x[0], results_low.x[1],results_low.x[2],results_low.x[3]):
+                    sol.w_L = results_high.x[0]
+                    sol.e_L = results_high.x[1]
+                    sol.w_H = results_high.x[2]
+                    sol.e_H = results_high.x[3] 
+                else:
+                    sol.w_L = results_low.x[0]
+                    sol.e_L = results_low.x[1]
+                    sol.w_H = results_low.x[2]
+                    sol.e_H = results_low.x[3]    
+            else:
+                sol.w_L = 0.0
+                sol.e_L = 0.0
+                sol.w_H = 0.0
+                sol.e_H = 0.0
+
 
 
 
@@ -327,10 +380,8 @@ class PrincipalAgent():
         sol = self.sol
         ext = self.ext
 
-        # number of agents
-        ext.n = 10
-
         # Allocate arrays for solutions
+        sol.x_vec = np.zeros(2*ext.n)
         sol.w_vec = np.zeros(ext.n) # optimal wages in extended model
         sol.e_vec = np.zeros(ext.n) # optimal education levels in extended model
 
@@ -361,22 +412,41 @@ class PrincipalAgent():
         profits = 0.0
         
         for i in range(self.ext.n):
-            pi_i = self.ext.q_vec[i]*(self.ext.y_vec[i]+self.par.alpha*args[i+self.ext.n]-args[i])
-
             if self.u(self.ext.b_vec[i],args[i],args[i+self.ext.n]) >= self.ext.r_vec[i]:
+                pi_i = self.ext.q_vec[i]*(self.ext.y_vec[i]+self.par.alpha*args[i+self.ext.n]-args[i])
                 profits += pi_i
             else:
                 continue
 
         return profits
     
-    # Define objective function
 
+    # Define objective function
     def objective_many(self, x):
         """Objective function to minimize"""
         return -self.profits_many(*x)
 
 
+
+    def constraints_many(self,x):
+        ext = self.ext
+
+      # define constraints
+        constraints = [] # construct empty list of constraints
+        # For each type of worker, we now append the IR constraint of the worker 
+                # and all the n-1 IC constraints of this worker to the list of constraints
+        for i in range(ext.n):
+            constraints.append({'type': 'ineq', 'fun': lambda x, i=i: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - ext.r_vec[i], 'jac': None}) # IR_i constraint
+                                                            # note that x[0][i] is worker i's wage and x[1][i] is his education level
+
+            for j in range(ext.n):
+                if j == i:
+                    continue
+                else:
+                    constraints.append({'type': 'ineq', 'fun': lambda x, i=i, j=j: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - self.u(ext.b_vec[i], x[j], x[j+ext.n]), 'jac': None}) # IC_i constraints
+        
+        return constraints
+    
 
     # Solve the model
     def solve_many(self):
@@ -391,7 +461,7 @@ class PrincipalAgent():
         bounds_e = [(0.0, par.e_max) for _ in range(ext.n)] # education is non-negative and there is a limit on how high education you can take
         bounds = bounds_w + bounds_e 
 
-
+        
         # define constraints
         constraints = [] # construct empty list of constraints
         # For each type of worker, we now append the IR constraint of the worker 
@@ -407,7 +477,6 @@ class PrincipalAgent():
                     constraints.append({'type': 'ineq', 'fun': lambda x, i=i, j=j: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - self.u(ext.b_vec[i], x[j], x[j+ext.n]), 'jac': None}) # IC_i constraints
         
 
-
         # The initial guess must now be a list of 2*n elements, 
                 # where the first n elements are guesses on w_vec and the last n elements are guesses on e_vec
         w0_vec = ext.y_vec[:] # copy of y_vec
@@ -420,10 +489,52 @@ class PrincipalAgent():
                                    bounds = bounds,
                                    constraints = constraints)
                 
+
         # save results
         for i in range(ext.n):
             sol.w_vec[i] = results.x[i]
             sol.e_vec[i] = results.x[i+ext.n]
+
+
+
+    def solve_many1(self):
+
+        par = self.par
+        sol = self.sol
+        ext = self.ext
+
+
+        # bounds for solution variables
+        bounds_w = [(0.0, np.inf) for _ in range(ext.n)] # wage must be non-negative
+        bounds_e = [(0.0, par.e_max) for _ in range(ext.n)] # education is non-negative and there is a limit on how high education you can take
+        bounds = bounds_w + bounds_e 
+
+        
+        # The initial guess must now be a list of 2*n elements, 
+                # where the first n elements are guesses on w_vec and the last n elements are guesses on e_vec
+        w0_vec = ext.y_vec[:] # copy of y_vec
+        e0_vec = np.linspace(0.0,25.0,num=ext.n)
+        x0 = list(np.concatenate((w0_vec,e0_vec)))
+
+        # define constraints
+        constraints = self.constraints_many(x0)
+
+        # Optimal contract when we design contracts accepted by both workers
+        results = optimize.minimize(self.objective_many, x0, 
+                                   method='SLSQP', 
+                                   bounds = bounds,
+                                   constraints = constraints)
+                
+        
+        # save results
+        for i in range(ext.n):
+            if self.ext.y_vec[i]+self.par.alpha*results.x[i+self.ext.n]>=results.x[i]: #postive profit from worker i 
+                sol.w_vec[i] = results.x[i]
+                sol.e_vec[i] = results.x[i+ext.n]
+            else:
+                sol.w_vec[i] = 0
+                sol.e_vec[i] = 0
+
 
 
         
