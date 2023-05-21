@@ -391,8 +391,10 @@ class PrincipalAgent():
 
 
 
-
+#################################################################
 ################ n different types of workers ###################
+#################################################################
+
     def setup_many(self):
         """Setup for model with many agents"""
 
@@ -402,11 +404,10 @@ class PrincipalAgent():
         ext = self.ext
 
         # Allocate arrays for solutions
-        sol.x_vec = np.zeros(2*ext.n)
         sol.w_vec = np.zeros(ext.n) # optimal wages in extended model
         sol.e_vec = np.zeros(ext.n) # optimal education levels in extended model
 
-        # Draw random values from a uniform distribution of productivity levels in the interval from 50 to 300
+        # Draw random values from a uniform distribution of productivity levels in the interval from 10 to 350
         np.random.seed(40)
         ext.y_vec = np.random.uniform(10.0,350.0,size=ext.n)
         ext.y_vec.sort()
@@ -417,7 +418,7 @@ class PrincipalAgent():
         ext.b_vec[::-1].sort() #sorts in descending order
 
         # For simplicity we assume that the outside option is smaller than the productivity level and that it increases in the productivity level
-        ext.r_vec = ext.y_vec*0.3
+        ext.r_vec = ext.y_vec*0.4
 
         # Draw random shares of different worker types
         ext.q_vec = np.random.uniform(0.0,1.0,size=ext.n)
@@ -426,6 +427,7 @@ class PrincipalAgent():
 
 
     def u(self,b,w,e):
+        """Utility function"""
         return w-b*self.f(e)
     
     def profits_many(self, *args):
