@@ -172,22 +172,35 @@ class PrincipalAgent():
         # call optimizer
         x0 = (par.y_L, 10.0, par.y_H, 15.0) # initial guess
 
-        # Optimal contract when we design contracts accepted by both workers
+        # Optimal contract when we design one contracts for each of the worker types
         results = optimize.minimize(self.objective, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
                                    constraints = [IR_H, IR_L, IC_H, IC_L])
-                
-        ### Compare profit in inner solution with contracts where principal only offers a single contract ###
+        
+        
+        
+        ####################################################################################################        
+        ####### Find optimal contracts on the boundary where principal only offers a single contract #######
+        ####################################################################################################
 
         # Optimal contract when principal offers a single contract that only low productivity workers accepts
-        results_low = optimize.minimize(self.objective, x0, 
+        results_alt1 = optimize.minimize(self.objective, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
                                    constraints = [IR_L, {'type': 'eq', 'fun': lambda x: x[2]}, {'type': 'eq', 'fun': lambda x: x[3]}])
         
-        # Optimal constract when principal offers a single contract that only high productivity workers are willing to accept
-        results_high = optimize.minimize(self.objective, x0, 
+        # Optimal contract when principal offers a single contract that both high and low productivity workers accepts 
+            # this is the case when both outside options and productivity levels are very close to each other for the worker types
+        results_alt2 = optimize.minimize(self.objective, x0, 
+                                   method='SLSQP', 
+                                   bounds=bounds, 
+                                   constraints = [IR_H, IR_L, {'type': 'eq', 'fun': lambda x: x[2]-x[0]}, 
+                                                  {'type': 'eq', 'fun': lambda x: x[3]-x[1]}])
+
+
+        # Optimal contract when principal offers a single contract that only high productivity workers are willing to accept
+        results_alt3 = optimize.minimize(self.objective, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
                                    constraints = [IR_H, {'type': 'eq', 'fun': lambda x: x[0]}, 
@@ -195,12 +208,14 @@ class PrincipalAgent():
                                                   {'type': 'ineq', 'fun': lambda x: self.par.r_L-self.u_L(x[2],x[3])}])
         
 
-        
-        # Compare profits for different solutions and choose the contract prodiving the highest profit
+        #########################################################################################################
+        ###### Compare profits for different solutions and choose the contract prodiving the highest profit #####
+        #########################################################################################################
 
         # Calculate profit for best alternative to the inner solution
-        best_alt = max(self.profits(results_high.x[0], results_high.x[1],results_high.x[2],results_high.x[3]), 
-                    self.profits(results_low.x[0], results_low.x[1],results_low.x[2],results_low.x[3]))    
+        best_alt = max(self.profits(results_alt1.x[0], results_alt1.x[1],results_alt1.x[2],results_alt1.x[3]), 
+                    self.profits(results_alt2.x[0], results_alt2.x[1],results_alt2.x[2],results_alt2.x[3]),
+                    self.profits(results_alt3.x[0], results_alt3.x[1],results_alt3.x[2],results_alt3.x[3]))    
 
         # If inner solution implies positive and higher profits than best alternative -> set inner solution as solution
         if self.profits(results.x[0], results.x[1],results.x[2],results.x[3])>=best_alt:
@@ -217,16 +232,22 @@ class PrincipalAgent():
 
         else: # if best alternative implies positive and higher profits than inner solution -> set best alternative as solution  
             if best_alt>0:
-                if self.profits(results_high.x[0], results_high.x[1],results_high.x[2],results_high.x[3])>=self.profits(results_low.x[0], results_low.x[1],results_low.x[2],results_low.x[3]):
-                    sol.w_L = results_high.x[0]
-                    sol.e_L = results_high.x[1]
-                    sol.w_H = results_high.x[2]
-                    sol.e_H = results_high.x[3] 
-                else:
-                    sol.w_L = results_low.x[0]
-                    sol.e_L = results_low.x[1]
-                    sol.w_H = results_low.x[2]
-                    sol.e_H = results_low.x[3]    
+                if best_alt == self.profits(results_alt1.x[0], results_alt1.x[1],results_alt1.x[2],results_alt1.x[3]):
+                    sol.w_L = results_alt1.x[0]
+                    sol.e_L = results_alt1.x[1]
+                    sol.w_H = results_alt1.x[2]
+                    sol.e_H = results_alt1.x[3] 
+                elif best_alt == self.profits(results_alt2.x[0], results_alt2.x[1],results_alt2.x[2],results_alt2.x[3]):
+                    sol.w_L = results_alt2.x[0]
+                    sol.e_L = results_alt2.x[1]
+                    sol.w_H = results_alt2.x[2]
+                    sol.e_H = results_alt2.x[3]  
+                elif best_alt == self.profits(results_alt3.x[0], results_alt3.x[1],results_alt3.x[2],results_alt3.x[3]):
+                    sol.w_L = results_alt3.x[0]
+                    sol.e_L = results_alt3.x[1]
+                    sol.w_H = results_alt3.x[2]
+                    sol.e_H = results_alt3.x[3]
+
             else:
                 sol.w_L = 0.0
                 sol.e_L = 0.0
@@ -488,7 +509,6 @@ class PrincipalAgent():
                                    method='SLSQP', 
                                    bounds = bounds,
                                    constraints = constraints)
-                
 
         # save results
         for i in range(ext.n):
