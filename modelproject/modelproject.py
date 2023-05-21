@@ -1,7 +1,9 @@
 from types import SimpleNamespace
 from scipy import optimize
+from scipy.stats import norm
 import numpy as np
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
 
 class PrincipalAgent():
     def __init__(self):
@@ -407,23 +409,47 @@ class PrincipalAgent():
         sol.w_vec = np.zeros(ext.n) # optimal wages in extended model
         sol.e_vec = np.zeros(ext.n) # optimal education levels in extended model
 
-        # Draw random values from a uniform distribution of productivity levels in the interval from 10 to 350
-        np.random.seed(40)
-        ext.y_vec = np.random.uniform(10.0,350.0,size=ext.n)
-        ext.y_vec.sort()
+        # Draw linear spaced values of productivity levels in the interval from 10 to 350
+        ext.y_vec = np.linspace(10.0,350.0,num=ext.n)
 
-        # Draw random values of disutility from education between 0.1 and 3.0. 
-            # We assume that disutility from education and worker's productivity level are negatively correlated
-        ext.b_vec = np.random.uniform(1.0,3.5,size=ext.n)
-        ext.b_vec[::-1].sort() #sorts in descending order
+        # Draw linear spaced values of disutility from education between 3.5 and 1.0. 
+            # We assume that disutility from education and worker's productivity level are negatively correlated,
+            # thus we create array in descending order
+        ext.b_vec = np.linspace(3.5,1.0,num=ext.n)
+
 
         # For simplicity we assume that the outside option is smaller than the productivity level and that it increases in the productivity level
         ext.r_vec = ext.y_vec*0.4
 
-        # Draw random shares of different worker types
-        ext.q_vec = np.random.uniform(0.0,1.0,size=ext.n)
-        ext.q_vec /= np.sum(ext.q_vec)
+        # Find shares of each worker type
+        F = norm(loc=np.mean(ext.y_vec),scale=100) # distribution of workers in the population is normally distributed around mean of productivity level
+        ext.q_vec = F.pdf(ext.y_vec) # extract probabilities for each of the productivity levels in y_vec
+        ext.q_vec /= np.sum(ext.q_vec) # rescale probabilities assuming that values in y_vec are the only possible worker types
 
+    def plot_distribution(self,n):
+        ext = self.ext
+
+        self.ext.n = n # types of workers
+        self.setup_many() # update arrays in setup
+
+        # Get draws from distribution for 10**6 workers
+        K = np.random.choice(ext.y_vec,size=10**6,p=ext.q_vec)
+
+        # Plot distribution
+        fig = plt.figure(dpi=100)
+        ax = fig.add_subplot(1,1,1)
+        ax.hist(K,bins=100,density=True,alpha=0.5,color='purple')
+
+        # Plot details
+        ax.set_xlim([-30.0,380.0])
+        ax.set_xlabel('$y$')
+        ax.set_ylabel('Density');
+    
+    def interactive_distplot(self):
+        ext = self.ext
+        widgets.interact(self.plot_distribution,
+        n=widgets.IntSlider(description="Types of workers", min=1, max=100, step=1, value=10)
+        );
 
 
     def u(self,b,w,e):
@@ -452,6 +478,7 @@ class PrincipalAgent():
 
 
     def constraints_many(self,x):
+        """ Define IR- and IC constraints"""
         ext = self.ext
 
       # define constraints
@@ -471,55 +498,7 @@ class PrincipalAgent():
         return constraints
     
 
-    # Solve the model
     def solve_many(self):
-
-        par = self.par
-        sol = self.sol
-        ext = self.ext
-
-
-        # bounds for solution variables
-        bounds_w = [(0.0, np.inf) for _ in range(ext.n)] # wage must be non-negative
-        bounds_e = [(0.0, par.e_max) for _ in range(ext.n)] # education is non-negative and there is a limit on how high education you can take
-        bounds = bounds_w + bounds_e 
-
-        
-        # define constraints
-        constraints = [] # construct empty list of constraints
-        # For each type of worker, we now append the IR constraint of the worker 
-                # and all the n-1 IC constraints of this worker to the list of constraints
-        for i in range(ext.n):
-            constraints.append({'type': 'ineq', 'fun': lambda x, i=i: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - ext.r_vec[i], 'jac': None}) # IR_i constraint
-                                                            # note that x[0][i] is worker i's wage and x[1][i] is his education level
-
-            for j in range(ext.n):
-                if j == i:
-                    continue
-                else:
-                    constraints.append({'type': 'ineq', 'fun': lambda x, i=i, j=j: self.u(ext.b_vec[i], x[i], x[i+ext.n]) - self.u(ext.b_vec[i], x[j], x[j+ext.n]), 'jac': None}) # IC_i constraints
-        
-
-        # The initial guess must now be a list of 2*n elements, 
-                # where the first n elements are guesses on w_vec and the last n elements are guesses on e_vec
-        w0_vec = ext.y_vec[:] # copy of y_vec
-        e0_vec = np.linspace(0.0,25.0,num=ext.n)
-        x0 = list(np.concatenate((w0_vec,e0_vec)))
-
-        # Optimal contract when we design contracts accepted by both workers
-        results = optimize.minimize(self.objective_many, x0, 
-                                   method='SLSQP', 
-                                   bounds = bounds,
-                                   constraints = constraints)
-
-        # save results
-        for i in range(ext.n):
-            sol.w_vec[i] = results.x[i]
-            sol.e_vec[i] = results.x[i+ext.n]
-
-
-
-    def solve_many1(self):
 
         par = self.par
         sol = self.sol
@@ -547,18 +526,10 @@ class PrincipalAgent():
                                    bounds = bounds,
                                    constraints = constraints)
                 
-        
         # save results
         for i in range(ext.n):
-            if self.ext.y_vec[i]+self.par.alpha*results.x[i+self.ext.n]>=results.x[i]: #postive profit from worker i 
-                sol.w_vec[i] = results.x[i]
-                sol.e_vec[i] = results.x[i+ext.n]
-            else:
-                sol.w_vec[i] = 0
-                sol.e_vec[i] = 0
-
-
-
+            sol.w_vec[i] = results.x[i]
+            sol.e_vec[i] = results.x[i+ext.n]
         
 
 
