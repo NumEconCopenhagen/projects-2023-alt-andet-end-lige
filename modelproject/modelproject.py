@@ -65,18 +65,21 @@ class PrincipalAgent():
         """Individual rationality constraint for low-productives"""
         return x-self.par.r_L
 
-    # Solve model whem firms can only offer one contract for both worker types
+    # Solve model
     def solve_one(self):
+        """Solve model when firms can only offer a single contract for both worker types"""
+
+        # call namespaces
         par = self.par
         sol = self.sol
 
-      #setup
+        #setup
         bounds = [(0.0,np.inf)]
         IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H_one} 
         IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L_one}
 
         # call optimizer
-        x0 = par.y_L
+        x0 = par.y_L # initial guess
         results = optimize.minimize(self.objective_one, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
@@ -160,7 +163,7 @@ class PrincipalAgent():
 
     # Solve model when firm observes education level
     def solve(self):
-
+        """Solve model when firm can now offer two types of contracts"""
         par = self.par
         sol = self.sol
 
@@ -427,13 +430,14 @@ class PrincipalAgent():
         ext.q_vec /= np.sum(ext.q_vec) # rescale probabilities assuming that values in y_vec are the only possible worker types
 
     def plot_distribution(self,n):
+        """Plot distribution of workers in population"""
         ext = self.ext
 
         self.ext.n = n # types of workers
         self.setup_many() # update arrays in setup
 
-        # Get draws from distribution for 10**6 workers
-        K = np.random.choice(ext.y_vec,size=10**6,p=ext.q_vec)
+        # Get draws from distribution for a population of 10,000 workers
+        K = np.random.choice(ext.y_vec,size=10000,p=ext.q_vec)
 
         # Plot distribution
         fig = plt.figure(dpi=100)
@@ -446,6 +450,7 @@ class PrincipalAgent():
         ax.set_ylabel('Density');
     
     def interactive_distplot(self):
+        "Interactive plot of distribution of workers"
         ext = self.ext
         widgets.interact(self.plot_distribution,
         n=widgets.IntSlider(description="Types of workers", min=1, max=100, step=1, value=10)
@@ -499,11 +504,14 @@ class PrincipalAgent():
     
 
     def solve_many(self):
+        """Solve model when firm offers a contract for each of the n types of workers """
 
         par = self.par
         sol = self.sol
         ext = self.ext
 
+        # Call on setup_many function such that arrays are updated when we change number of agents in the model.
+        self.setup_many()
 
         # bounds for solution variables
         bounds_w = [(0.0, np.inf) for _ in range(ext.n)] # wage must be non-negative
