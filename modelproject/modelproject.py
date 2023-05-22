@@ -425,11 +425,11 @@ class PrincipalAgent():
         ext.r_vec = ext.y_vec*0.4
 
         # Find shares of each worker type
-        F = norm(loc=np.mean(ext.y_vec),scale=100) # distribution of workers in the population is normally distributed around mean of productivity level
+        F = norm(loc=np.mean(ext.y_vec),scale=100) # distribution of workers in the population is normally distributed around y=180
         ext.q_vec = F.pdf(ext.y_vec) # extract probabilities for each of the productivity levels in y_vec
         ext.q_vec /= np.sum(ext.q_vec) # rescale probabilities assuming that values in y_vec are the only possible worker types
 
-    def plot_distribution(self,n):
+    def _plot_distribution(self,n):
         """Plot distribution of workers in population"""
         ext = self.ext
 
@@ -449,10 +449,10 @@ class PrincipalAgent():
         ax.set_xlabel('$y$')
         ax.set_ylabel('Density');
     
-    def interactive_distplot(self):
+    def plot_distribution(self):
         "Interactive plot of distribution of workers"
         ext = self.ext
-        widgets.interact(self.plot_distribution,
+        widgets.interact(self._plot_distribution,
         n=widgets.IntSlider(description="Types of workers", min=1, max=100, step=1, value=10)
         );
 
