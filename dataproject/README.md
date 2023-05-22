@@ -7,7 +7,7 @@ The **results** of the project can be seen from running [dataproject.ipynb](data
 We apply the **following datasets**:
 
 1. EJ55 (*Danmarks Statisik*) 
-1. AULK01 (*Danmarks Statisik*)
+1. AUS08 (*Danmarks Statisik*)
 
 **Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires the following installations:
 
