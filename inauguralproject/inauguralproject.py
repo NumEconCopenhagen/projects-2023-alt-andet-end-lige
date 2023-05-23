@@ -25,7 +25,7 @@ class HouseholdSpecializationModelClass:
         # c. household production
         par.alpha = 0.5
         par.sigma = 1.0
-        par.kappa = 0.0
+        par.kappa = 0.5
 
         # d. wages
         par.wM = 1.0
@@ -81,7 +81,7 @@ class HouseholdSpecializationModelClass:
         disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
         
         if extension:
-            disutility+=par.kappa*(HM)
+            disutility+=par.kappa*HM+(1-par.kappa)*HF
 
         return utility - disutility
 
@@ -223,7 +223,7 @@ class HouseholdSpecializationModelClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
-    
+
     def squared_dev(self, pars, extension=False): 
         """Specify squared deviation from data moments at given parameter
         values for alpha and sigma"""
@@ -257,15 +257,17 @@ class HouseholdSpecializationModelClass:
 
         # Initial guess and bounds
         if extension:
-            bounds = ((-3.00,3.00),(0.0000001,4.0)) # bounds = (kappa_bounds, sigma_bounds)
-            par_guess = [0.0,1.0] # [kappa_guess,sigma_guess]
+            bounds = ((0.00001,1.0),(0.0000001,4.0)) # bounds = (kappa_bounds, sigma_bounds)
+            par_guess = [0.5,1.0] # [kappa_guess,sigma_guess]
         else:
             bounds = ((0.000001,1.0),(0.0000001,4.0)) # bounds = (alpha_bounds,sigma_bounds)
             par_guess = [0.5,1.0] # [alpha_guess,sigma_guess]
-  
+
+        # Define objective function to minimize
+        obj = lambda x: self.squared_dev(x,extension=extension)
 
         # Optimize
-        result = optimize.minimize(self.squared_dev, par_guess,bounds=bounds, method="nelder-mead")
+        result = optimize.minimize(obj, par_guess,bounds=bounds, method="nelder-mead")
         
         # Save results
         if extension:
