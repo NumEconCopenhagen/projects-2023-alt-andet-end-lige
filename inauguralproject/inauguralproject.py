@@ -279,38 +279,72 @@ class HouseholdSpecializationModelClass:
 
 
 
-    def plot_modelfit(self, N=20):
-        alphas = np.linspace(0.90,0.99,N)
-        sigmas = np.linspace(0.05,0.1,N)
+    
+    def plot_modelfit(self, N=20, extension=False):
+        if extension == False:
+            alphas = np.linspace(0.90,0.99,N)
+            sigmas = np.linspace(0.05,0.1,N)
 
-        # Create empty space for function values
-        func_vec = np.empty((N,N))
+            # Create empty space for function values
+            func_vec = np.empty((N,N))
 
-        # Compute function values at different values for alpha and sigma
-        for i, alpha in enumerate(alphas):
-            for j, sigma in enumerate(sigmas):
-                func_vec[i,j] = self.squared_dev([alpha,sigma])
+            # Compute function values at different values for alpha and sigma
+            for i, alpha in enumerate(alphas):
+                for j, sigma in enumerate(sigmas):
+                    func_vec[i,j] = self.squared_dev([alpha,sigma])
 
-        # Create grid of alpha and sigma values 
-        alpha_grid, sigma_grid = np.meshgrid(alphas, sigmas)
+            # Create grid of alpha and sigma values 
+            alpha_grid, sigma_grid = np.meshgrid(alphas, sigmas)
 
-        # Create 3D plot
-        fig = plt.figure(figsize=(10,8)) #Initiating figure
-        gs = gridspec.GridSpec(1, 2, width_ratios=[9, 1])  # Create a 1x2 grid with width ratios for the subplots
-        ax = fig.add_subplot(gs[0], projection='3d') #Making the plot 3d
-        surf = ax.plot_surface(alpha_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
-        ax.scatter([self.sol.alpha_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
-        ax.set_xlabel(r'$\alpha$') # X-label
-        ax.set_ylabel(r'$\sigma$') # Y-label
-        ax.set_zlabel('Function Value') #Z-label
-        ax.set_title('Function Values for Different Alpha and Sigma Values') #Title
+            # Create 3D plot
+            fig = plt.figure(figsize=(10,8)) #Initiating figure
+            gs = gridspec.GridSpec(1, 2, width_ratios=[9, 1])  # Create a 1x2 grid with width ratios for the subplots
+            ax = fig.add_subplot(gs[0], projection='3d') #Making the plot 3d
+            surf = ax.plot_surface(alpha_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
+            ax.scatter([self.sol.alpha_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
+            ax.set_xlabel(r'$\alpha$') # X-label
+            ax.set_ylabel(r'$\sigma$') # Y-label
+            ax.set_zlabel('Function Value') #Z-label
+            ax.set_title('Function Values for Different Alpha and Sigma Values') #Title
+
+            # Add color bar
+            cax = fig.add_subplot(gs[1])  # Add subplot for the color bar
+            cbar = fig.colorbar(surf, cax=cax) 
+            cbar.set_label('Function Value')  # Set label for the color bar
+            plt.show() 
         
-        # Add color bar
-        cax = fig.add_subplot(gs[1])  # Add subplot for the color bar
-        cbar = fig.colorbar(surf, cax=cax) 
-        cbar.set_label('Function Value')  # Set label for the color bar
-        plt.show() 
+        else:
+            kappas = np.linspace(0.50,0.599,N)
+            sigmas = np.linspace(1.1,1.15,N)
 
+            # Create empty space for function values
+            func_vec = np.empty((N,N))
+
+            # Compute function values at different values for alpha and sigma
+            for i, kappa in enumerate(kappas):
+                for j, sigma in enumerate(sigmas):
+                    func_vec[i,j] = self.squared_dev([kappa,sigma])
+
+            # Create grid of alpha and sigma values 
+            kappa_grid, sigma_grid = np.meshgrid(kappas, sigmas)
+
+            # Create 3D plot
+            fig = plt.figure(figsize=(10,8)) #Initiating figure
+            gs = gridspec.GridSpec(1, 2, width_ratios=[9, 1])  # Create a 1x2 grid with width ratios for the subplots
+            ax = fig.add_subplot(gs[0], projection='3d') #Making the plot 3d
+            surf = ax.plot_surface(kappa_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
+            ax.scatter([self.sol.kappa_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
+            ax.set_xlabel(r'$\kappa$') # X-label
+            ax.set_ylabel(r'$\sigma$') # Y-label
+            ax.set_zlabel('Function Value') #Z-label
+            ax.set_title('Function Values for Different Kappa and Sigma Values') #Title
+
+            # Add color bar
+            cax = fig.add_subplot(gs[1])  # Add subplot for the color bar
+            cbar = fig.colorbar(surf, cax=cax) 
+            cbar.set_label('Function Value')  # Set label for the color bar
+            plt.show() 
+        
 
 
 
