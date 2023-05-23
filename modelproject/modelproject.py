@@ -89,17 +89,17 @@ class PrincipalAgent():
                                    constraints = [IR_H, IR_L])
         
         
-        # compare profits 
+        # Profits are compared 
         if self.profits_one(results.x[0])>=self.profits_one(self.par.r_L):
             if self.profits_one(results.x[0])>=0:
-                sol.w = results.x[0]
+                sol.w = results.x[0] 
             else:
-                sol.w = 0
+                sol.w = 0 #wage is set to 0 if profits are negative, i.e no contract is offered
         else:
             if self.profits_one(self.par.r_L)>=0:
                 sol.w = self.par.r_L
             else:
-                sol.w = 0
+                sol.w = 0 
 
                 
                             
