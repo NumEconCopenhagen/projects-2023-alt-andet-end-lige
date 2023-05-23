@@ -1,31 +1,9 @@
-def square(x):
-    """ square numpy array
-    
-    Args:
-    
-        x (ndarray): input array
-        
-    Returns:
-    
-        y (ndarray): output array
-    
-    """
-    
-    y = x**2
-    return y
-
-
-
-
-
-
 from types import SimpleNamespace
-
 import numpy as np
 from scipy import optimize
-
 import pandas as pd 
 import matplotlib.pyplot as plt
+
 
 class HouseholdSpecializationModelClass:
 
@@ -35,6 +13,7 @@ class HouseholdSpecializationModelClass:
         # a. create namespaces
         par = self.par = SimpleNamespace()
         sol = self.sol = SimpleNamespace()
+        opt = self.opt = SimpleNamespace()
 
         # b. preferences
         par.rho = 2.0
@@ -73,18 +52,19 @@ class HouseholdSpecializationModelClass:
         # a. consumption of market goods
         C = par.wM*LM + par.wF*LF
 
+        # b. consumption of home production
+        def H(HM,HF):
+            if par.sigma == 0.0: #minimum
+                return np.min(HM,HF)
+            elif par.sigma == 1.0: # Cobb-douglas
+                return HM**(1-par.alpha)*HF**par.alpha
+            else: #CES
+                return ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1.0))
+            
+        # c. total consumption
+        Q = C**par.omega*H(HM,HF)**(1-par.omega)
 
-        #b. Return
-        if par.sigma == 0.: #minimum
-            H = np.min(HM,HF)
-        elif par.sigma == 1.: #Cobb-Douglas
-            H = HM**(1-par.alpha)*HF**par.alpha
-        else: #CES
-            H = ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1))
-    
-
-        # c. total consumption utility
-        Q = C**par.omega*H**(1-par.omega)
+        # d. utility gain from total consumption
         utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
         # d. disutlity of work
@@ -100,7 +80,7 @@ class HouseholdSpecializationModelClass:
         
         par = self.par
         sol = self.sol
-        opt = SimpleNamespace()
+        opt = self.opt
         
         # a. all possible choices
         x = np.linspace(0,24,49)
