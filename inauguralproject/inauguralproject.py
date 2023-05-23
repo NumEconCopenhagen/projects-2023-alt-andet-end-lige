@@ -25,6 +25,7 @@ class HouseholdSpecializationModelClass:
         # c. household production
         par.alpha = 0.5
         par.sigma = 1.0
+        par.kappa = 0.5
 
         # d. wages
         par.wM = 1.0
@@ -47,7 +48,7 @@ class HouseholdSpecializationModelClass:
         sol.alpha_hat = np.nan
         sol.sigma_hat = np.nan
 
-    def calc_utility(self,LM,HM,LF,HF):
+    def calc_utility(self,LM,HM,LF,HF, extension=False):
         """ calculate utility """
 
         par = self.par
@@ -71,15 +72,17 @@ class HouseholdSpecializationModelClass:
         # d. utility gain from total consumption
         utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
-        # d. disutlity of work
+        # d. disutility of work
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
-        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
-        
+        if extension:
+            disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)+par.kappa*(HM)+(1-par.kappa)*(HF)
+        else:
+            disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
         return utility - disutility
 
-    def solve_discrete(self,do_print=False):
+    def solve_discrete(self,do_print=False, extension=False):
         """ solve model discretely """
         
         par = self.par
@@ -120,7 +123,7 @@ class HouseholdSpecializationModelClass:
 
 
 
-    def solve_continous(self,do_print=False): 
+    def solve_continous(self,do_print=False, extension=False): 
         """ solve model continously """
 
         par = self.par
@@ -150,7 +153,7 @@ class HouseholdSpecializationModelClass:
         return opt
     
 
-    def solve_wF_vec(self,discrete=False): 
+    def solve_wF_vec(self,discrete=False, extension=False): 
         """ solve model for vector of female wages """
         par = self.par
         sol = self.sol
@@ -172,7 +175,7 @@ class HouseholdSpecializationModelClass:
             sol.HM_vec[i] = results.HM
 
 
-    def plot(self,discrete=True):
+    def plot(self,discrete=True, extension=False):
 
         #Create empty lists of log-ratios
         logHF_HM = np.zeros(5)
@@ -205,7 +208,7 @@ class HouseholdSpecializationModelClass:
 
 
 
-    def run_regression(self):
+    def run_regression(self, extension=False):
         """ run regression """
         par = self.par
         sol = self.sol
@@ -215,7 +218,7 @@ class HouseholdSpecializationModelClass:
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
         
-    def squared_dev(self, pars): 
+    def squared_dev(self, pars, extension=False): 
         """Specify squared deviation from data moments at given parameter
         values for alpha and sigma"""
         # Set parameters
@@ -224,7 +227,7 @@ class HouseholdSpecializationModelClass:
         self.par.sigma = sigma
         
         # Solve model for different values of w_F
-        self.solve_wF_vec(discrete=False)
+        self.solve_wF_vec(discrete=False, extension=False)
 
 
         self.run_regression()
@@ -233,8 +236,8 @@ class HouseholdSpecializationModelClass:
 
         return ((self.par.beta0_target - beta0)**2 + (self.par.beta1_target - beta1)**2)
     
-    def minimize_squared_dev(self):
-        """Find the values of alpha and sigma that minimizes
+    def estimate(self, extension=False):
+        """Estimate the values of alpha and sigma that minimizes
         the squared deviation function from target coefficients"""
 
         # Initial guess and bounds
@@ -280,12 +283,6 @@ class HouseholdSpecializationModelClass:
         cbar = fig.colorbar(surf, cax=cax) 
         cbar.set_label('Function Value')  # Set label for the color bar
         plt.show() 
-
-
-    
-    def estimate(self, alpha=None, sigma=None):
-        """ estimate alpha and sigma """
-        pass
 
 
 
