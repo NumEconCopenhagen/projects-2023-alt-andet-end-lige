@@ -47,6 +47,7 @@ class HouseholdSpecializationModelClass:
 
         sol.alpha_hat = np.nan
         sol.sigma_hat = np.nan
+        sol.kappa_hat = np.nan
 
     def calc_utility(self,LM,HM,LF,HF, extension=False):
         """ calculate utility """
@@ -101,7 +102,7 @@ class HouseholdSpecializationModelClass:
         HF = HF.ravel()
 
         # b. calculate utility
-        u = self.calc_utility(LM,HM,LF,HF)
+        u = self.calc_utility(LM,HM,LF,HF,extension=extension)
     
         # c. set to minus infinity if constraint is broken
         I = (LM+HM > 24) | (LF+HF > 24) # | is "or"
@@ -133,14 +134,16 @@ class HouseholdSpecializationModelClass:
         opt = self.opt
 
         # Objective function
-        obj = lambda x: -self.calc_utility(x[0],x[1],x[2],x[3])
+        obj = lambda x: -self.calc_utility(x[0],x[1],x[2],x[3],extension=extension)
 
-        # bounds
+        # intitial guess
         intial_guess = [12, 12, 12, 12] # Initial guess: both male and female member use equal amount of time on labor and home production
 
+        #bounds and constraints
         bounds = ((0,24),(0,24),(0,24),(0,24))
+        constraints = [{'type':'ineq','fun': lambda x: 24-x[0]-x[1]},{'type':'ineq','fun': lambda x: 24-x[2]-x[3]}]
 
-        result = optimize.minimize(obj, intial_guess, bounds=bounds,  method='nelder-mead')
+        result = optimize.minimize(obj, intial_guess, bounds=bounds, constraints=constraints,  method='SLSQP', tol=1e-08)
         
         # Setting the solution equal to the solution namespace:
         opt.LM = sol.LM = result.x[0] 
@@ -166,9 +169,9 @@ class HouseholdSpecializationModelClass:
 
             #Solve model
             if discrete:
-                results = self.solve_discrete()
+                results = self.solve_discrete(extension=extension)
             else:
-                results = self.solve_continous()
+                results = self.solve_continous(extension=extension)
 
             #Store results
             sol.LF_vec[i] = results.LF
@@ -210,7 +213,7 @@ class HouseholdSpecializationModelClass:
 
 
 
-    def run_regression(self, extension=False):
+    def run_regression(self):
         """ run regression """
         par = self.par
         sol = self.sol
@@ -224,12 +227,20 @@ class HouseholdSpecializationModelClass:
         """Specify squared deviation from data moments at given parameter
         values for alpha and sigma"""
         # Set parameters
-        alpha, sigma = pars
-        self.par.alpha = alpha
-        self.par.sigma = sigma
+    
+        if extension:
+            kappa, sigma = pars
+            self.par.kappa = kappa
+            self.par.sigma = sigma
+            self.par.alpha = 0.5
+            
+        else:
+            alpha, sigma = pars
+            self.par.alpha = alpha
+            self.par.sigma = sigma
         
         # Solve model for different values of w_F
-        self.solve_wF_vec(discrete=False, extension=False)
+        self.solve_wF_vec(discrete=False, extension=extension)
 
 
         self.run_regression()
@@ -240,18 +251,29 @@ class HouseholdSpecializationModelClass:
     
     def estimate(self, extension=False):
         """Estimate the values of alpha and sigma that minimizes
-        the squared deviation function from target coefficients"""
+        the squared deviation function from target coefficients
+        Note: In the extension of the model we estimate kappa instead of alpha"""
 
         # Initial guess and bounds
-        par_guess = [0.5,1.0] # [alpha_guess,sigma_guess]
-        bounds = ((0.000001,1.0),(0.0000001,4.0))
+        if extension:
+            bounds = ((-3.00,3.00),(0.0000001,4.0)) # bounds = (kappa_bounds, sigma_bounds)
+            par_guess = [0.0,1.0] # [kappa_guess,sigma_guess]
+        else:
+            bounds = ((0.000001,1.0),(0.0000001,4.0)) # bounds = (alpha_bounds,sigma_bounds)
+            par_guess = [0.5,1.0] # [alpha_guess,sigma_guess]
+  
 
         # Optimize
         result = optimize.minimize(self.squared_dev, par_guess,bounds=bounds, method="nelder-mead")
         
         # Save results
-        self.sol.alpha_hat = result.x[0]
-        self.sol.sigma_hat = result.x[1]
+        if extension:
+            self.sol.kappa_hat = result.x[0]
+            self.sol.sigma_hat = result.x[1]
+        else:
+            self.sol.alpha_hat = result.x[0]
+            self.sol.sigma_hat = result.x[1]
+
 
 
     def plot_modelfit(self, N=20):
