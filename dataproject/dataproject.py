@@ -5,11 +5,32 @@ from IPython.display import display
 
 # importing package to create plots and setting basic, visual settings
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
 plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","grid.linestyle":"-"})
 plt.rcParams.update({'font.size': 10})
-import ipywidgets as widgets
 
 
+def plot_priceindex(df, selected_provinces):
+    # Create a plot
+    fig, ax = plt.subplots()
+    for province in selected_provinces: 
+        I = df['PROVINCE'] == province
+        df.loc[I, :].plot(x='TIME', y='SALES_INDEX', legend=False, ax=ax)
+    # Set labels and title
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Price Index')
+    ax.set_title('Price Index of Houses Across Regions in Denmark')
+    plt.legend(selected_provinces)
+    # Show plot
+    plt.show()
+
+
+def priceindex_widgets(df):
+    widgets.interact(plot_priceindex, # creating interactive widget letting us choose multiple desired provinces
+                 df=widgets.fixed(df),
+                 selected_provinces=widgets.SelectMultiple(description='Provinces', 
+                                                           options=df.PROVINCE.unique(), 
+                                                           value=['Province Byen København'], disabled=False))
 
 def _binscatter(df,province):
     # Construct dataset for each province
