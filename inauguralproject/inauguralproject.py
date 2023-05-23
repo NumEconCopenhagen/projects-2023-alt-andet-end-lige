@@ -54,9 +54,9 @@ class HouseholdSpecializationModelClass:
 
         # b. consumption of home production
         def H(HM,HF):
-            if par.sigma == 0.0: #minimum
+            if par.sigma == 0: #minimum
                 return np.min(HM,HF)
-            elif par.sigma == 1.0: # Cobb-douglas
+            elif par.sigma == 1: # Cobb-douglas
                 return HM**(1-par.alpha)*HF**par.alpha
             else: #CES
                 return ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1.0))
@@ -121,23 +121,16 @@ class HouseholdSpecializationModelClass:
 
         par = self.par
         sol = self.sol
-        opt = SimpleNamespace()
-
+        opt = self.opt
 
         # Objective function
         obj = lambda x: -self.calc_utility(x[0],x[1],x[2],x[3])
 
-        # Constraints and bounds
-        constraint_male = lambda x: 24 - x[0] - x[1]
-        constraint_female = lambda x: 24 - x[2] - x[3]
-
-        constraints = [{'type': 'ineq', 'fun': constraint_male},{'type': 'ineq', 'fun': constraint_female}]
-
+        # bounds
         intial_guess = [12, 12, 12, 12] # Initial guess: both male and female member use equal amount of time on labor and home production
 
         bounds = ((0,24),(0,24),(0,24),(0,24))
 
-        #result = optimize.minimize(obj, intial_guess, constraints=constraints, method = "SLSQP", bounds=bounds)
         result = optimize.minimize(obj, intial_guess, bounds=bounds,  method='nelder-mead')
         
         # Setting the solution equal to the solution namespace:
@@ -203,7 +196,7 @@ class HouseholdSpecializationModelClass:
         ax.set_title("Plot of " + r'$\log(\frac{H_F}{H_M})$' + " against " r'$\log(\frac{w_F}{w_M})$') # add title
         ax.set_xlabel(r'$\log(\frac{w_F}{w_M})$') # add x-label
         ax.set_ylabel(r'$\log(\frac{H_F}{H_M})$'); # add y-label
-        
+
         plt.show()
 
 
