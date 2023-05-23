@@ -215,7 +215,8 @@ class HouseholdSpecializationModelClass:
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
         
     def squared_dev(self, pars): 
-        """Specify squared deviation function to minimize"""
+        """Specify squared deviation from data moments at given parameter
+        values for alpha and sigma"""
         # Set parameters
         alpha, sigma = pars
         self.par.alpha = alpha
@@ -247,6 +248,31 @@ class HouseholdSpecializationModelClass:
         self.sol.sigma_hat = result.x[1]
 
 
+    def plot_modelfit(self):
+        alphas = np.linspace(0.90,0.99,20)
+        sigmas = np.linspace(0.05,0.1,20)
+
+        # Create empty space for function values
+        func_vec = np.empty((20,20))
+
+        # Compute function values at different values for alpha and sigma
+        for i, alpha in enumerate(alphas):
+            for j, sigma in enumerate(sigmas):
+                func_vec[i,j] = self.squared_dev([alpha,sigma])
+
+        # Create grid of alpha and sigma values 
+        alpha_grid, sigma_grid = np.meshgrid(alphas, sigmas)
+
+        # Create 3D plot
+        fig = plt.figure(figsize=(10,8)) #Initiating figure
+        ax = plt.axes(projection='3d') #Making the plot 3d
+        ax.plot_surface(alpha_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
+        ax.scatter([self.sol.alpha_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
+        ax.set_xlabel(r'$\alpha$') # X-label
+        ax.set_ylabel(r'$\sigma$') # Y-label
+        ax.set_zlabel('Function Value') #Z-label
+        ax.set_title('Function Values for Different Alpha and Sigma Values') #Title
+        plt.show() 
 
 
     
