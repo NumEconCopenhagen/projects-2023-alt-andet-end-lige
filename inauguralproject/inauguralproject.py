@@ -152,7 +152,6 @@ class HouseholdSpecializationModelClass:
                 print(f'{k} = {v:6.4f}')  
         return opt
     
-  
 
     def solve_wF_vec(self,discrete=False): #exc. 2
         """ solve model for vector of female wages """
@@ -174,6 +173,38 @@ class HouseholdSpecializationModelClass:
             sol.HF_vec[i] = results.HF
             sol.LM_vec[i] = results.LM
             sol.HM_vec[i] = results.HM
+
+
+    def plot(self,discrete=True):
+
+        #Create empty lists of log-ratios
+        logHF_HM = np.zeros(5)
+        logwF_wM = np.zeros(5)
+
+        #solve model discretely
+        if discrete:
+            self.solve_wF_vec(discrete=True)
+        else:
+            self.solve_wF_vec(discrete=False)
+
+        # create relevant variables
+        for i in range(5):
+            logHF_HM[i] = np.log(self.sol.HF_vec[i]/ self.sol.HM_vec[i])
+            logwF_wM[i] = np.log(self.par.wF_vec[i])
+
+        # create the figure
+        fig = plt.figure()
+
+        # plot
+        ax = fig.add_subplot(1,1,1)
+
+        ax.plot(logwF_wM,logHF_HM) 
+
+        ax.set_title("Plot of " + r'$\log(\frac{H_F}{H_M})$' + " against " r'$\log(\frac{w_F}{w_M})$') # add title
+        ax.set_xlabel(r'$\log(\frac{w_F}{w_M})$') # add x-label
+        ax.set_ylabel(r'$\log(\frac{H_F}{H_M})$'); # add y-label
+        
+        plt.show()
 
 
 
