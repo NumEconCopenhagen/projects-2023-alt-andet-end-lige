@@ -3,6 +3,7 @@ import numpy as np
 from scipy import optimize
 import pandas as pd 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 
 class HouseholdSpecializationModelClass:
@@ -265,8 +266,9 @@ class HouseholdSpecializationModelClass:
 
         # Create 3D plot
         fig = plt.figure(figsize=(10,8)) #Initiating figure
-        ax = plt.axes(projection='3d') #Making the plot 3d
-        ax.plot_surface(alpha_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
+        gs = gridspec.GridSpec(1, 2, width_ratios=[9, 1])  # Create a 1x2 grid with width ratios for the subplots
+        ax = fig.add_subplot(gs[0], projection='3d') #Making the plot 3d
+        surf = ax.plot_surface(alpha_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
         ax.scatter([self.sol.alpha_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
         ax.set_xlabel(r'$\alpha$') # X-label
         ax.set_ylabel(r'$\sigma$') # Y-label
