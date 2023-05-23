@@ -25,7 +25,7 @@ class HouseholdSpecializationModelClass:
         # c. household production
         par.alpha = 0.5
         par.sigma = 1.0
-        par.kappa = 0.5
+        par.kappa = 0.0
 
         # d. wages
         par.wM = 1.0
@@ -76,10 +76,12 @@ class HouseholdSpecializationModelClass:
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
+        
+        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
+        
         if extension:
-            disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)+par.kappa*(HM)+(1-par.kappa)*(HF)
-        else:
-            disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
+            disutility+=par.kappa*(HM)
+
         return utility - disutility
 
     def solve_discrete(self,do_print=False, extension=False):
