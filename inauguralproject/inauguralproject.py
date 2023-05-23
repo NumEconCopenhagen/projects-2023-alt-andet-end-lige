@@ -222,18 +222,19 @@ class HouseholdSpecializationModelClass:
         y = np.log(sol.HF_vec/sol.HM_vec)
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
-        
+    
+    
     def squared_dev(self, pars, extension=False): 
         """Specify squared deviation from data moments at given parameter
         values for alpha and sigma"""
+        
         # Set parameters
-    
         if extension:
             kappa, sigma = pars
             self.par.kappa = kappa
             self.par.sigma = sigma
             self.par.alpha = 0.5
-            
+
         else:
             alpha, sigma = pars
             self.par.alpha = alpha
