@@ -45,10 +45,13 @@ class PrincipalAgent():
 
     # profit function
     def profits_one(self, w):
+        # If the wage is below the outside option for both worker types, the firm's profit is zero as no worker will accept the contract. 
         if w < self.par.r_H and w<self.par.r_L:
             return 0
+        # If the wage is below the outside option for high-productive workers, but above the outside option for low-productive workers, only low-productive workers will accept the contract.
         elif w < self.par.r_H:
             return (1-self.par.q)*(self.par.y_L-w)
+        # If the wage is above the outside option for high-productive workers, both worker types will accept the contract.
         else:
             return self.par.q*(self.par.y_H - w) + (1-self.par.q)*(self.par.y_L-w)
 
