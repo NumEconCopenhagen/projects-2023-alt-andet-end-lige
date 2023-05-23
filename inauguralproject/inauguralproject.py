@@ -254,12 +254,12 @@ class HouseholdSpecializationModelClass:
         self.sol.sigma_hat = result.x[1]
 
 
-    def plot_modelfit(self):
-        alphas = np.linspace(0.90,0.99,20)
-        sigmas = np.linspace(0.05,0.1,20)
+    def plot_modelfit(self, N=20):
+        alphas = np.linspace(0.90,0.99,N)
+        sigmas = np.linspace(0.05,0.1,N)
 
         # Create empty space for function values
-        func_vec = np.empty((20,20))
+        func_vec = np.empty((N,N))
 
         # Compute function values at different values for alpha and sigma
         for i, alpha in enumerate(alphas):
