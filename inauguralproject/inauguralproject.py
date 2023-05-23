@@ -43,6 +43,9 @@ class HouseholdSpecializationModelClass:
         sol.beta0 = np.nan
         sol.beta1 = np.nan
 
+        sol.alpha_hat = np.nan
+        sol.sigma_hat = np.nan
+
     def calc_utility(self,LM,HM,LF,HF):
         """ calculate utility """
 
@@ -116,7 +119,7 @@ class HouseholdSpecializationModelClass:
 
 
 
-    def solve_continous(self,do_print=False): #exc. 3
+    def solve_continous(self,do_print=False): 
         """ solve model continously """
 
         par = self.par
@@ -146,7 +149,7 @@ class HouseholdSpecializationModelClass:
         return opt
     
 
-    def solve_wF_vec(self,discrete=False): #exc. 2
+    def solve_wF_vec(self,discrete=False): 
         """ solve model for vector of female wages """
         par = self.par
         sol = self.sol
@@ -203,15 +206,48 @@ class HouseholdSpecializationModelClass:
 
     def run_regression(self):
         """ run regression """
-
         par = self.par
         sol = self.sol
-
+        
         x = np.log(par.wF_vec)
         y = np.log(sol.HF_vec/sol.HM_vec)
         A = np.vstack([np.ones(x.size),x]).T
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
         
+    def squared_dev(self, pars): 
+        """Specify squared deviation function to minimize"""
+        # Set parameters
+        alpha, sigma = pars
+        self.par.alpha = alpha
+        self.par.sigma = sigma
+        
+        # Solve model for different values of w_F
+        self.solve_wF_vec(discrete=False)
+
+
+        self.run_regression()
+        beta0 = self.sol.beta0
+        beta1 = self.sol.beta1
+
+        return ((self.par.beta0_target - beta0)**2 + (self.par.beta1_target - beta1)**2)
+    
+    def minimize_squared_dev(self):
+        """Find the values of alpha and sigma that minimizes
+        the squared deviation function from target coefficients"""
+
+        # Initial guess and bounds
+        par_guess = [0.5,1.0] # [alpha_guess,sigma_guess]
+        bounds = ((0.000001,1.0),(0.0000001,4.0))
+
+        # Optimize
+        result = optimize.minimize(self.squared_dev, par_guess,bounds=bounds, method="nelder-mead")
+        
+        # Save results
+        self.sol.alpha_hat = result.x[0]
+        self.sol.sigma_hat = result.x[1]
+
+
+
 
     
     def estimate(self, alpha=None, sigma=None):
