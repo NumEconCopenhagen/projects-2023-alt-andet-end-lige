@@ -314,36 +314,26 @@ class HouseholdSpecializationModelClass:
             plt.show() 
         
         else:
-            kappas = np.linspace(0.50,0.599,N)
-            sigmas = np.linspace(1.1,1.15,N)
+            N = 100
+            kappas = np.linspace(0.50, 0.599, N)
 
             # Create empty space for function values
-            func_vec = np.empty((N,N))
+            func_vec = np.empty(N)
 
-            # Compute function values at different values for alpha and sigma
+            # Compute function values at different values for kappa
             for i, kappa in enumerate(kappas):
-                for j, sigma in enumerate(sigmas):
-                    func_vec[i,j] = self.squared_dev([kappa,sigma])
+                func_vec[i] = self.squared_dev([kappa, self.sol.sigma_hat],extension=extension)  # Assuming self.sigma_hat is defined elsewhere
 
-            # Create grid of alpha and sigma values 
-            kappa_grid, sigma_grid = np.meshgrid(kappas, sigmas)
-
-            # Create 3D plot
-            fig = plt.figure(figsize=(10,8)) #Initiating figure
-            gs = gridspec.GridSpec(1, 2, width_ratios=[9, 1])  # Create a 1x2 grid with width ratios for the subplots
-            ax = fig.add_subplot(gs[0], projection='3d') #Making the plot 3d
-            surf = ax.plot_surface(kappa_grid, sigma_grid, func_vec, cmap='jet', alpha = 0.50) #Creating figure
-            ax.scatter([self.sol.kappa_hat], [self.sol.sigma_hat], [(self.par.beta0_target-self.sol.beta0)**2 + (self.par.beta1_target-self.sol.beta1)**2]) #Plotting optimal solution
-            ax.set_xlabel(r'$\kappa$') # X-label
-            ax.set_ylabel(r'$\sigma$') # Y-label
-            ax.set_zlabel('Function Value') #Z-label
-            ax.set_title('Function Values for Different Kappa and Sigma Values') #Title
-
-            # Add color bar
-            cax = fig.add_subplot(gs[1])  # Add subplot for the color bar
-            cbar = fig.colorbar(surf, cax=cax) 
-            cbar.set_label('Function Value')  # Set label for the color bar
-            plt.show() 
+            # Create plot
+            plt.figure(figsize=(8, 6))
+            plt.plot(kappas, func_vec, color='blue')
+            plt.scatter(self.sol.kappa_hat, (self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026, color='red')
+            plt.xlabel(r'$\kappa$')
+            plt.ylabel('Function Value')
+            plt.title(r'Function Values for Different $\kappa$-values')
+            plt.annotate(f'kappa={self.sol.kappa_hat:.3f}',xy=(self.sol.kappa_hat-0.01,0.01+(self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026), xytext=(self.sol.kappa_hat, -self.sol.kappa_hat), textcoords='offset points');
+            plt.grid(True)
+            plt.show()
         
 
 
