@@ -161,7 +161,7 @@ class HouseholdSpecializationModelClass:
         result = optimize.minimize(obj, intial_guess, bounds=bounds,  method='nelder-mead')
         
         # Setting the solution equal to the solution namespace:
-        opt.LM = sol.HF = result.x[0] 
+        opt.LM = sol.LM = result.x[0] 
         opt.HM = sol.HM = result.x[1]
         opt.LF = sol.LF = result.x[2]
         opt.HF = sol.HF = result.x[3]
