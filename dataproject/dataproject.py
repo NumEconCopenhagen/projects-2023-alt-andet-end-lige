@@ -55,3 +55,5 @@ def binscatter_widgets(df):
                                         options=df.PROVINCE.unique(), 
                                         value='Province Byen København'),
     );
+
+
