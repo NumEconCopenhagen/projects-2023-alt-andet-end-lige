@@ -6,7 +6,6 @@ from IPython.display import display
 # importing package to create plots and setting basic, visual settings
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
-plt.rcParams['figure.figsize'] = [7, 5]
 plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","grid.linestyle":"-"})
 plt.rcParams.update({'font.size': 10})
 
