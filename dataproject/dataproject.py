@@ -9,7 +9,23 @@ plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","
 plt.rcParams.update({'font.size': 10})
 import ipywidgets as widgets
 
+def plot_priceindex(df, selected_provinces):
+    fig, ax = plt.subplots()
+    for province in selected_provinces:
+        I = df['PROVINCE'] == province
+        df.loc[I, :].plot(x='TIME', y='SALES_INDEX', legend=False, ax=ax)
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Price Index')
+    ax.set_title('Price Index of Houses Across Regions in Denmark')
+    plt.legend(selected_provinces)
+    plt.show()
 
+def priceindex_widgets(df):
+    widgets.interact(plot_priceindex, # creating interactive widget letting us choose the desired provinces
+                 df=widgets.fixed(df),
+                 selected_provinces=widgets.SelectMultiple(description='Provinces', 
+                                                           options=df.PROVINCE.unique(), 
+                                                           value=['Province Byen København'], disabled=False))
 
 def _binscatter(df,province):
     # Construct dataset for each province
