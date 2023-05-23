@@ -5,9 +5,12 @@ from IPython.display import display
 
 # importing package to create plots and setting basic, visual settings
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
+#setting the plot size 
+plt.rcParams['figure.figsize'] = [10, 5]
 plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","grid.linestyle":"-"})
 plt.rcParams.update({'font.size': 10})
-import ipywidgets as widgets
+
 
 def plot_priceindex(df, selected_provinces):
     fig, ax = plt.subplots()
@@ -19,6 +22,7 @@ def plot_priceindex(df, selected_provinces):
     ax.set_title('Price Index of Houses Across Regions in Denmark')
     plt.legend(selected_provinces)
     plt.show()
+
 
 def priceindex_widgets(df):
     widgets.interact(plot_priceindex, # creating interactive widget letting us choose the desired provinces
