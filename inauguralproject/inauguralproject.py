@@ -272,6 +272,11 @@ class HouseholdSpecializationModelClass:
         ax.set_ylabel(r'$\sigma$') # Y-label
         ax.set_zlabel('Function Value') #Z-label
         ax.set_title('Function Values for Different Alpha and Sigma Values') #Title
+        
+        # Add color bar
+        cax = fig.add_subplot(gs[1])  # Add subplot for the color bar
+        cbar = fig.colorbar(surf, cax=cax) 
+        cbar.set_label('Function Value')  # Set label for the color bar
         plt.show() 
 
 
