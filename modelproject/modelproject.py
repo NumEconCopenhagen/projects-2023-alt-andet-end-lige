@@ -404,8 +404,10 @@ class PrincipalAgent():
         self.plot_isoprofit_curves(ax)
         self.plot_solutions(ax)
         self.plot_details(ax)
-    
+
+
     def two_plots(self): 
+        """Plot graphs when q=0 and q=1"""
         # a. plot q=0
         self.par.q=0
         fig = plt.figure(figsize=(10,4))
@@ -523,6 +525,7 @@ class PrincipalAgent():
         """Firm's profit function"""
         profits = 0.0
         
+        # Add profit provided by worker if and only if worker accepts contract.
         for i in range(self.ext.n):
             if self.u(self.ext.b_vec[i],args[i],args[i+self.ext.n]) >= self.ext.r_vec[i]:
                 pi_i = self.ext.q_vec[i]*(self.ext.y_vec[i]+self.par.alpha*args[i+self.ext.n]-args[i])
