@@ -69,7 +69,7 @@ class PrincipalAgent():
         return x-self.par.r_L
 
     # Solve model
-    def solve_one(self):
+    def solve_one(self, do_print=False):
         """Solve model when firms can only offer a single contract for both worker types"""
 
         # call namespaces
@@ -101,6 +101,9 @@ class PrincipalAgent():
             else:
                 sol.w = 0 
 
+        if do_print:
+            print(f'w={self.sol.w:.2f}')
+            print(f'profits={self.profits_one(self.sol.w):.3f}')
                 
                             
    
