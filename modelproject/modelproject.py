@@ -404,11 +404,14 @@ class PrincipalAgent():
     def _plot_q(self, q):      
         "Plot of solutions for given value of q"  
         self.par.q = q
-        self.solve()
+        self.solve(do_print=True)
 
         self.find_indifference_curves()
         self.find_isoprofit_curves()
         self.plot_everything()
+        #if do_print==True:
+            #print(f'For q={self.par.q} we have the following solutions for optimal wages and education levels: (w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
+            #print(f'Which yields profits of {self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
         
         
     def plot_q(self, do_print=False):
@@ -416,10 +419,8 @@ class PrincipalAgent():
         widgets.interact(self._plot_q,
         q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
         );
-        if do_print==True:
-            print(f'(w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
-            print(f'profits={self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
-
+        
+        
 
 
 #################################################################
