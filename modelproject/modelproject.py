@@ -405,6 +405,33 @@ class PrincipalAgent():
         self.plot_solutions(ax)
         self.plot_details(ax)
     
+    def two_plots(self): 
+        # a. plot q=0
+        self.par.q=0
+        fig = plt.figure(figsize=(10,4))
+        ax = fig.add_subplot(1,2,1)
+        self.solve(do_print=True)
+        self.find_indifference_curves()
+        self.find_isoprofit_curves()
+        self.plot_indifference_curves(ax)
+        self.plot_isoprofit_curves(ax)
+        self.plot_solutions(ax)
+        self.plot_details(ax)
+        ax.set_title('Only low productivity workers') 
+    
+   
+        # b. plot q=1
+        self.par.q=1
+        ax = fig.add_subplot(1,2,2)
+        self.solve(do_print=True)
+        self.find_indifference_curves()
+        self.find_isoprofit_curves()
+        self.plot_indifference_curves(ax)
+        self.plot_isoprofit_curves(ax)
+        self.plot_solutions(ax)
+        self.plot_details(ax)
+        ax.set_title('Only high productivity workers') 
+    
     def _plot_q(self, q):      
         "Plot of solutions for given value of q"  
         self.par.q = q
