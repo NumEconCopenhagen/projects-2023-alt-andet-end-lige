@@ -314,8 +314,7 @@ class HouseholdSpecializationModelClass:
             plt.show() 
         
         else:
-            N = 100
-            kappas = np.linspace(0.50, 0.599, N)
+            kappas = np.linspace(0.55, 0.65, N)
 
             # Create empty space for function values
             func_vec = np.empty(N)
