@@ -69,7 +69,7 @@ class PrincipalAgent():
         return x-self.par.r_L
 
     # Solve model
-    def solve_one(self):
+    def solve_one(self, do_print=False):
         """Solve model when firms can only offer a single contract for both worker types"""
 
         # call namespaces
@@ -101,6 +101,9 @@ class PrincipalAgent():
             else:
                 sol.w = 0 
 
+        if do_print:
+            print(f'w={self.sol.w:.2f}')
+            print(f'profits={self.profits_one(self.sol.w):.3f}')
                 
                             
    
@@ -165,7 +168,7 @@ class PrincipalAgent():
 
 
     # Solve model when firm observes education level
-    def solve(self):
+    def solve(self, do_print=False):
         """Solve model when firm can now offer two types of contracts"""
         par = self.par
         sol = self.sol
@@ -262,7 +265,9 @@ class PrincipalAgent():
                 sol.w_H = 0.0
                 sol.e_H = 0.0
 
-
+        if do_print:
+            print(f'(w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
+            print(f'profits={self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
 
 
     ########## Plot solutions ############
@@ -395,7 +400,25 @@ class PrincipalAgent():
         self.plot_isoprofit_curves(ax)
         self.plot_solutions(ax)
         self.plot_details(ax)
+    
+    def _plot_q(self, q):      
+        "Plot of solutions for given value of q"  
+        self.par.q = q
+        self.solve()
 
+        self.find_indifference_curves()
+        self.find_isoprofit_curves()
+        self.plot_everything()
+        
+        
+    def plot_q(self, do_print=False):
+        "Interactive plot of shares of each type of worker"
+        widgets.interact(self._plot_q,
+        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
+        );
+        if do_print==True:
+            print(f'(w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
+            print(f'profits={self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
 
 
 
@@ -434,7 +457,7 @@ class PrincipalAgent():
 
     def _plot_distribution(self,n):
         """Plot distribution of workers in population"""
-        ext = self.ext
+        ext = self.ext #creating "ext" for extension
 
         self.ext.n = n # types of workers
         self.setup_many() # update arrays in setup
@@ -506,7 +529,7 @@ class PrincipalAgent():
         return constraints
     
 
-    def solve_many(self):
+    def solve_many(self, do_print=False, do_print_many=False):
         """Solve model when firm offers a contract for each of the n types of workers """
 
         par = self.par
@@ -542,7 +565,14 @@ class PrincipalAgent():
             sol.w_vec[i] = results.x[i]
             sol.e_vec[i] = results.x[i+ext.n]
         
+        if do_print:
+            for i in range(self.ext.n):
+                if i>=9:
+                    print(f'Worker type {i+1}:  (y,w,e) = ({self.ext.y_vec[i]:.2f}, {self.sol.w_vec[i]:.2f}, {self.sol.e_vec[i]:.2f})')
+                else:
+                    print(f'Worker type {i+1}:   (y,w,e) = ({self.ext.y_vec[i]:.2f}, {self.sol.w_vec[i]:.2f}, {self.sol.e_vec[i]:.2f})')
 
+            print(f'\nprofits = {self.profits_many(*self.sol.w_vec, *self.sol.e_vec):.2f}')
 
 
 
