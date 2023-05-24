@@ -314,7 +314,7 @@ class HouseholdSpecializationModelClass:
             plt.show() 
         
         else:
-            kappas = np.linspace(0.55, 0.65, N)
+            kappas = np.linspace(0.535, 0.635, N)
 
             # Create empty space for function values
             func_vec = np.empty(N)
@@ -326,7 +326,8 @@ class HouseholdSpecializationModelClass:
             # Create plot
             plt.figure(figsize=(8, 6))
             plt.plot(kappas, func_vec, color='blue')
-            plt.scatter(self.sol.kappa_hat, (self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026, color='red')
+            #plt.scatter(self.sol.kappa_hat, (self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026, color='red')
+            plt.scatter(self.sol.kappa_hat, self.squared_dev([self.sol.kappa_hat,self.sol.sigma_hat],extension=extension), color='red')
             plt.xlabel(r'$\kappa$')
             plt.ylabel('Function Value')
             plt.title(r'Function Values for Different $\kappa$-values')
