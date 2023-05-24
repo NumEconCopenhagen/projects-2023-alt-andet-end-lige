@@ -415,9 +415,9 @@ class PrincipalAgent():
         
         
     def plot_q(self, do_print=False):
-        "Interactive plot of shares of each type of worker"
+        "Interactive plot of optimal contracts when varying q"
         widgets.interact(self._plot_q,
-        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.0)
+        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
         );
         
         
