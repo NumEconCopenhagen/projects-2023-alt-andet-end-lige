@@ -511,7 +511,7 @@ class PrincipalAgent():
         return constraints
     
 
-    def solve_many(self):
+    def solve_many(self, do_print=False, do_print_many=False):
         """Solve model when firm offers a contract for each of the n types of workers """
 
         par = self.par
@@ -547,7 +547,14 @@ class PrincipalAgent():
             sol.w_vec[i] = results.x[i]
             sol.e_vec[i] = results.x[i+ext.n]
         
+        if do_print:
+            for i in range(self.ext.n):
+                if i>=9:
+                    print(f'Worker type {i+1}:  (y,w,e) = ({self.ext.y_vec[i]:.2f}, {self.sol.w_vec[i]:.2f}, {self.sol.e_vec[i]:.2f})')
+                else:
+                    print(f'Worker type {i+1}:   (y,w,e) = ({self.ext.y_vec[i]:.2f}, {self.sol.w_vec[i]:.2f}, {self.sol.e_vec[i]:.2f})')
 
+            print(f'\nprofits = {self.profits_many(*self.sol.w_vec, *self.sol.e_vec):.2f}')
 
 
 
