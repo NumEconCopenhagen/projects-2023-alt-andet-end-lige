@@ -134,12 +134,16 @@ class PrincipalAgent():
     
     def profits(self, w_L, e_L, w_H, e_H):
         """Firm's profit function"""
+        # If both IR-constraints are violated --> set profits to 0
         if self.u_H(w_H, e_H) < self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
             return 0
+        # If only IR_constraint for L holds --> set profit to profit from low productives
         elif self.u_H(w_H,e_H) < self.par.r_H and self.u_L(w_L,e_L)>=self.par.r_L:
             return (1-self.par.q)*(self.R_L(e_L)-w_L)
+        # If only IR_constraint for H holds --> set profit to profit from high productives
         elif self.u_H(w_H,e_H) >= self.par.r_H and self.u_L(w_L,e_L)<self.par.r_L:
             return self.par.q*(self.R_H(e_H) - w_H)
+        # If both IR-constraints holds --> set profit to sum of two workers' profits
         else:
             return self.par.q*(self.R_H(e_H) - w_H) + (1-self.par.q)*(self.R_L(e_L)-w_L)
 
