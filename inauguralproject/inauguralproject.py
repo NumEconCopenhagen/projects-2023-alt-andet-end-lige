@@ -251,7 +251,7 @@ class HouseholdSpecializationModelClass:
 
         return ((self.par.beta0_target - beta0)**2 + (self.par.beta1_target - beta1)**2)
     
-    def estimate(self, extension=False):
+    def estimate(self, extension=False, do_print=True):
         """Estimate the values of alpha and sigma that minimizes
         the squared deviation function from target coefficients
         Note: In the extension of the model we estimate kappa instead of alpha"""
@@ -268,7 +268,7 @@ class HouseholdSpecializationModelClass:
         obj = lambda x: self.squared_dev(x,extension=extension)
 
         # Optimize
-        result = optimize.minimize(obj, par_guess,bounds=bounds, method="nelder-mead")
+        result = optimize.minimize(obj, par_guess,bounds=bounds, method='nelder-mead')
         
         # Save results
         if extension:
@@ -277,6 +277,34 @@ class HouseholdSpecializationModelClass:
         else:
             self.sol.alpha_hat = result.x[0]
             self.sol.sigma_hat = result.x[1]
+        
+        # Print results
+        if do_print:
+            if extension:
+                print('The optimized parameter values are:')
+                print(f"Alpha = {self.par.alpha:6.3f}")
+                print(f"Sigma = {self.sol.sigma_hat:6.3f}")
+                print(f"Kappa = {self.sol.kappa_hat:6.3f}")
+
+                print("\nThe resulting regression coefficients are:")
+                print(f"Beta0 = {self.sol.beta0:6.3f}")
+                print(f"Beta1 = {self.sol.beta1:6.3f}")
+
+                print("\nThe resulting minimized squared deviation from the target coefficients is:")
+                print(f'Squared deviation = {self.squared_dev([self.sol.kappa_hat,self.sol.sigma_hat],extension=True):6.3f}')
+            else:
+                print('The optimized parameter values are:')
+                print(f"Alpha = {self.sol.alpha_hat:6.3f}")
+                print(f"Sigma = {self.sol.sigma_hat:6.3f}")
+
+                print("\nThe resulting regression coefficients are:")
+                print(f"Beta0 = {self.sol.beta0:6.3f}")
+                print(f"Beta1 = {self.sol.beta1:6.3f}")
+
+                print("\nThe resulting minimized squared deviation from the target coefficients is:")
+                print(f'Squared deviation = {self.squared_dev([self.sol.alpha_hat,self.sol.sigma_hat]):6.3f}')
+                
+                
 
 
 
@@ -327,7 +355,6 @@ class HouseholdSpecializationModelClass:
             # Create plot
             plt.figure(figsize=(8, 6))
             plt.plot(kappas, func_vec, color='blue')
-            #plt.scatter(self.sol.kappa_hat, (self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026, color='red')
             plt.scatter(self.sol.kappa_hat, self.squared_dev([self.sol.kappa_hat,self.sol.sigma_hat],extension=extension), color='red')
             plt.xlabel(r'$\kappa$')
             plt.ylabel('Function Value')
