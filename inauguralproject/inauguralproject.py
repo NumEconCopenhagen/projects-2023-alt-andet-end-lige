@@ -309,7 +309,7 @@ class HouseholdSpecializationModelClass:
 
 
     
-    def plot_modelfit(self, N=20, extension=False):
+    def plot_modelfit(self, N=20, extension=False, do_print=False):
         if extension == False:
             alphas = np.linspace(0.90,0.99,N)
             sigmas = np.linspace(0.05,0.1,N)
@@ -362,6 +362,13 @@ class HouseholdSpecializationModelClass:
             plt.annotate(f'kappa={self.sol.kappa_hat:.3f}',xy=(self.sol.kappa_hat-0.01,0.01+(self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026), xytext=(self.sol.kappa_hat, -self.sol.kappa_hat), textcoords='offset points');
             plt.grid(True)
             plt.show()
+        
+        if extension==True and do_print==True:
+            print(f'The optimal kappa is: \n')
+            print(f'Kappa = {self.sol.kappa_hat:.3f}\n')
+            print(f'The resulting minimized squared deviation is \n')
+            print(f'Squared deviation = {self.squared_dev([self.sol.kappa_hat,self.sol.sigma_hat],extension=True):6.3f}')
+            
         
 
 
