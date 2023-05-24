@@ -401,23 +401,24 @@ class PrincipalAgent():
         self.plot_solutions(ax)
         self.plot_details(ax)
     
-    def _plot_q(self, q):
-        fig = plt.figure(figsize=(7,5))
-        ax = fig.add_subplot(1,1,1)
-        
+    def _plot_q(self, q):      
+        "Plot of solutions for given value of q"  
         self.par.q = q
         self.solve()
 
-        self.plot_indifference_curves(ax)
-        self.plot_isoprofit_curves(ax)
-        self.plot_solutions(ax)
-        self.plot_details(ax)
+        self.find_indifference_curves()
+        self.find_isoprofit_curves()
+        self.plot_everything()
         
-    def plot_q(self):
+        
+    def plot_q(self, do_print=False):
         "Interactive plot of shares of each type of worker"
         widgets.interact(self._plot_q,
         q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
         );
+        if do_print==True:
+            print(f'(w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
+            print(f'profits={self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
 
 
 
