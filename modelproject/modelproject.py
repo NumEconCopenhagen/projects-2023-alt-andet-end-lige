@@ -400,7 +400,24 @@ class PrincipalAgent():
         self.plot_isoprofit_curves(ax)
         self.plot_solutions(ax)
         self.plot_details(ax)
+    
+    def _plot_q(self, q):
+        fig = plt.figure(figsize=(7,5))
+        ax = fig.add_subplot(1,1,1)
+        
+        self.par.q = q
+        self.solve()
 
+        self.plot_indifference_curves(ax)
+        self.plot_isoprofit_curves(ax)
+        self.plot_solutions(ax)
+        self.plot_details(ax)
+        
+    def plot_q(self):
+        "Interactive plot of shares of each type of worker"
+        widgets.interact(self._plot_q,
+        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
+        );
 
 
 
@@ -439,7 +456,7 @@ class PrincipalAgent():
 
     def _plot_distribution(self,n):
         """Plot distribution of workers in population"""
-        ext = self.ext
+        ext = self.ext #creating "ext" for extension
 
         self.ext.n = n # types of workers
         self.setup_many() # update arrays in setup
