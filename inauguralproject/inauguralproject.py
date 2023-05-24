@@ -59,19 +59,20 @@ class HouseholdSpecializationModelClass:
         C = par.wM*LM + par.wF*LF
 
         # b. consumption of home production
-        def H(HM,HF):
-            if par.sigma == 0: #minimum
-                return np.min(HM,HF)
-            elif par.sigma == 1: # Cobb-douglas
-                return HM**(1-par.alpha)*HF**par.alpha
-            else: #CES
-                return ((1-par.alpha)*HM**((par.sigma-1)/(par.sigma)) + par.alpha*HF**((par.sigma-1)/(par.sigma)))**(par.sigma/(par.sigma-1.0))
-            
+        with np.errstate(divide='ignore', over='ignore', invalid='ignore'):
+            if par.sigma == 1:
+                H = HM**(1-par.alpha)*HF**par.alpha
+            elif par.sigma == 0:
+                H = np.minimum(HM,HF)
+            else:
+                H = ((1-par.alpha)*HM**((par.sigma-1)/par.sigma)+par.alpha*HF**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
+        
         # c. total consumption
-        Q = C**par.omega*H(HM,HF)**(1-par.omega)
+        Q = C**par.omega*H**(1-par.omega)
 
         # d. utility gain from total consumption
-        utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
+        with np.errstate(invalid='ignore'):
+            utility = np.fmax(Q,1e-8)**(1-par.rho)/(1-par.rho)
 
         # d. disutility of work
         epsilon_ = 1+1/par.epsilon
