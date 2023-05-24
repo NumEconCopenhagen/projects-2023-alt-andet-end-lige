@@ -417,7 +417,7 @@ class PrincipalAgent():
     def plot_q(self, do_print=False):
         "Interactive plot of shares of each type of worker"
         widgets.interact(self._plot_q,
-        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.5)
+        q=widgets.FloatSlider(description="q", min=0, max=1, step=0.1, value=0.0)
         );
         
         
@@ -574,6 +574,22 @@ class PrincipalAgent():
                     print(f'Worker type {i+1}:   (y,w,e) = ({self.ext.y_vec[i]:.2f}, {self.sol.w_vec[i]:.2f}, {self.sol.e_vec[i]:.2f})')
 
             print(f'\nprofits = {self.profits_many(*self.sol.w_vec, *self.sol.e_vec):.2f}')
+
+
+
+    def plot_many(self):
+        """Plot optimal contract as a function of productivity level"""
+        fig = plt.figure(figsize=(7,4))
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.plot(self.sol.e_vec, self.sol.w_vec, self.ext.y_vec)
+
+        ax.set_xlabel('Education')
+        ax.set_ylabel('Wage')
+        ax.set_zlabel('Productivity')
+        ax.set_title('Optimal contract as a function of productivity')
+
+        plt.show()
 
 
 
