@@ -168,7 +168,7 @@ class PrincipalAgent():
 
 
     # Solve model when firm observes education level
-    def solve(self):
+    def solve(self, do_print=False):
         """Solve model when firm can now offer two types of contracts"""
         par = self.par
         sol = self.sol
@@ -265,7 +265,9 @@ class PrincipalAgent():
                 sol.w_H = 0.0
                 sol.e_H = 0.0
 
-
+        if do_print:
+            print(f'(w_L,e_L,w_H,e_H)=({self.sol.w_L:.3f},{self.sol.e_L:.3f},{self.sol.w_H:.3f}, {self.sol.e_H:.3f})')
+            print(f'profits={self.profits(self.sol.w_L,self.sol.e_L,self.sol.w_H,self.sol.e_H):.3f}')
 
 
     ########## Plot solutions ############
