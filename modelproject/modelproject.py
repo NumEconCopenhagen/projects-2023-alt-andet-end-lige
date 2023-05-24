@@ -26,7 +26,7 @@ class PrincipalAgent():
 
         # baseline settings
         par.e_max = 30 #maximum years of education
-        par.N = 100
+        par.N = 100 # Size of grid for plotting indifference and isoprofit lines
 
         # number of agents in extended model
         ext.n = 10
@@ -78,8 +78,8 @@ class PrincipalAgent():
 
         #setup
         bounds = [(0.0,np.inf)]
-        IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H_one} 
-        IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L_one}
+        IR_H ={'type': 'ineq', 'fun': self.ineq_IR_H_one} # wage must be great than or equal to r_H
+        IR_L ={'type': 'ineq', 'fun': self.ineq_IR_L_one} # wage must be great than or equal to r_L
 
         # call optimizer
         x0 = par.y_L # initial guess
@@ -89,18 +89,19 @@ class PrincipalAgent():
                                    constraints = [IR_H, IR_L])
         
         
-        # Profits are compared 
-        if self.profits_one(results.x[0])>=self.profits_one(self.par.r_L):
-            if self.profits_one(results.x[0])>=0:
+        # Compare profits
+        if self.profits_one(results.x[0])>=self.profits_one(self.par.r_L): #profits(inner solution)>=profits(low contract)
+            if self.profits_one(results.x[0])>=0: # positive profits
                 sol.w = results.x[0] 
             else:
                 sol.w = 0 #wage is set to 0 if profits are negative, i.e no contract is offered
-        else:
+        else: 
             if self.profits_one(self.par.r_L)>=0:
                 sol.w = self.par.r_L
             else:
                 sol.w = 0 
 
+        # Print results
         if do_print:
             print(f'w={self.sol.w:.2f}')
             print(f'profits={self.profits_one(self.sol.w):.3f}')
@@ -202,7 +203,6 @@ class PrincipalAgent():
                                    constraints = [IR_L, {'type': 'eq', 'fun': lambda x: x[2]}, {'type': 'eq', 'fun': lambda x: x[3]}])
         
         # Optimal contract when principal offers a single contract that both high and low productivity workers accepts 
-            # this is the case when both outside options and productivity levels are very close to each other for the worker types
         results_alt2 = optimize.minimize(self.objective, x0, 
                                    method='SLSQP', 
                                    bounds=bounds, 
