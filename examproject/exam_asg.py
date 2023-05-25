@@ -31,6 +31,7 @@ class LaborAdjustmentCosts():
         # solutions
         sol.lt = np.zeros(len(par.kappas))
         sol.epsilon = np.zeros(par.T)
+        sol.K = np.nan # Optimal number of shock series
         sol.Delta_opt = np.nan
 
 
@@ -128,6 +129,43 @@ class LaborAdjustmentCosts():
         return H
     
 
+    def estimate_K(self,tol=1e-7,do_print=True,do_plot=True):
+
+        H_range = np.empty(len(range(1000,10000,500)))
+        for i,K in enumerate(range(0,10000,500)):
+            H_range[i] = self.calc_H(K=K)
+            if H_range[i]-H_range[i-1] < tol:
+                self.sol.K = K #set optimal K 
+                H_K = H_range[i] # store associated H in local
+                H_range[i:] = H_range[i] # set rest of elements in H eq. to H[i]
+                break
+            else:
+                continue
+        
+        if do_print:
+            print(f'By comparing different values of H in the range between 0 and 10000 with a step size of 500,')
+            print(f'we choose H')
+
+        if do_plot:
+            fig = plt.figure(figsize=(7,5))
+            ax = fig.add_subplot(1,1,1)
+            ax.plot(range(1,10001,500),H_range, color='green')
+            ax.scatter(self.sol.K, H_K , color='orange')
+            ax.annotate(f'Choice of K=({self.sol.K}',xy=(self.sol.K,H_K), xytext=(self.sol.K,H_K), textcoords='offset points')
+            ax.set_xlabel("K")
+            ax.set_ylabel("Ex ante expected value")
+            ax.set_xlim([0,10000])
+            ax.set_ylim([27.4,27.7])
+            plt.grid(True)
+            plt.show();            
+        
+
+            
+
+
+
+
+
 
     ############## Question 4 ################        
 
@@ -143,10 +181,11 @@ class LaborAdjustmentCosts():
         self.sol.Delta_opt = result.x[0]
 
         # Print results
-        print(f'H is maximized for Delta = {self.sol.Delta_opt:.3f}, implying H={self.calc_H(Delta=self.sol.Delta_opt):.3f}')
+        print(f'H is maximized for Delta = {self.sol.Delta_opt:.3f}, implying H={result.fun:.3f}')
         
 
     def plot_Delta(self,K=1000):
+
         H_Delta = np.empty(50)
         for i,Delta in enumerate(np.linspace(0,0.2,50)):
             self.par.Delta = Delta
