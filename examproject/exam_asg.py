@@ -23,6 +23,7 @@ class LaborAdjustmentCosts():
         # baseline parameters
         par.eta = 0.5 
         par.w = 1.0 
+        par.kappas = [1.0, 2.0]
 
         # solutions
         sol.l = np.nan
@@ -35,16 +36,27 @@ class LaborAdjustmentCosts():
         par.R = (1+0.01)**(1/12)
         
     
-    def supply(l, y):
-        l = y
-        return y
+    def supply(lt, yt):
+        lt = yt
+        return yt
     
-    def demand(self, kappa, y):
-        p = kappa * y**(-self.par.eta)
-        return p
+    def demand(self, kappat, yt):
+        pt = kappat * yt**(-self.par.eta)
+        return pt
     
-    def profits(self, kappa, l):
-        return self.par.kappa * l**(1-self.par.eta)-self.par.w*l
+    def profits(self, kappat, yt, lt):
+        profits = kappat * lt**(1-self.par.eta) - self.par.w * lt
+        return profits
+    
+    def find_optimal_lt(self, kappat):
+        for kappat in self.par.kappas: # for loop to iterate over the different values of kappa
+            # calculating optimal lt given our formula
+            optimal_lt = ((1-self.par.eta)*kappat/self.par.w)**(1/(self.par.eta))
+            self.sol.l = optimal_lt 
+            
+            #calculating profits given the optimal lt
+            profits = self.profits(self, kappat)
+            print(f'For kappa = {kappat:.1f}, optimal lt = {self.sol.l:.2f}, profits = {profits:.2f}')
     
     def obj(self, x):
         return -self.profits(x)
