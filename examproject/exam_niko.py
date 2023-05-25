@@ -3,6 +3,7 @@ import numpy as np
 from scipy import optimize
 import pandas as pd 
 import matplotlib.pyplot as plt
+import sympy as sm
 import matplotlib.gridspec as gridspec
 
 class OptimalTaxation: 
@@ -28,36 +29,32 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L, extension = False, CES = False):
+    def calc_utility(self, L, extension=False, CES=False):
         """ utility function """
         par = self.par
         sol = self.sol
 
-        #a. consumption of market goods and alternative government consumption
-        C = par.kappa+(1-par.tau)*par.w*L
+        # a. consumption of market goods and alternative government consumption
+        C = par.kappa + (1 - par.tau) * par.w * L
         G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
-        #b. Handle case when C is zero
-        if C == 0:
-            C = 1e-10
-
-        #c. utility gain from total consumption
-        if CES: 
-            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)-1/(1-par.rho)
-        elif extension:
-            utility = np.log(C**par.alpha*G**(1-par.alpha))
-        else:
-             utility = np.log(C**par.alpha*par.G**(1-par.alpha))
-
-        #d. disutility from work 
+        # b. utility gain from total consumption
         if CES:
-            disutility = par.nu *(L**(1+par.epsilon)/1+par.epsilon) # Set disutility to zero when L is zero
+            utility = ((((par.alpha * C ** ((par.sigma - 1) / par.sigma)) + ((1 - par.alpha) * G ** ((par.sigma - 1) / par.sigma))) ** (par.sigma / (par.sigma - 1))) ** (1 - par.rho) - 1) / (1 - par.rho)
+        elif extension:
+            utility = np.log(C ** par.alpha * G ** (1 - par.alpha))
         else:
-            disutility = (par.nu * L**2) / 2   
+            utility = np.log(C ** par.alpha * par.G ** (1 - par.alpha))
 
-        #e. total utility
-        
+        # c. disutility from work
+        if CES:
+            disutility = par.nu * (L ** (1 + par.epsilon) / (1 + par.epsilon))  # Set disutility to zero when L is zero
+        else:
+            disutility = (par.nu * L ** 2) / 2
+
+        # d. total utility
         return utility - disutility
+
     
     def solve(self, extension=False, CES=False, do_print=False):
         """ solve model """
@@ -66,8 +63,6 @@ class OptimalTaxation:
 
         # a. objective function 
         obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        
-        # b. initial guess
         initial_guess = 24 #all hours are spent working 
 
         #c. bounds and constraints 
@@ -81,7 +76,9 @@ class OptimalTaxation:
         sol.L = results.x[0]
     
         #f. Printing result
-        if do_print:
+        if do_print & CES:
+            print(f'Optimal labor supply with CES utility function is {sol.L:.2f}')
+        elif do_print:
             print(f'Optimal labor supply with baseline parameters is {sol.L:.2f}')
         else: 
             return sol.L
@@ -204,6 +201,28 @@ class OptimalTaxation:
             print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
         else:
             return tau_star
+        
+    def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False):
+        """ calculate the optimal government consumption corresponding to tau_star """
+        par = self.par
+        sol = self.sol
+
+        # Solve the model for the given tau_star
+        par.tau = self.optimal_tax_cd(extension=extension)
+        self.solve(CES=CES)
+
+        # Calculate the optimal government consumption
+        G_optimal = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+
+        if do_print:
+            print(f'Government consuption is {G_optimal:6.2f}')
+        else:
+            return G_optimal
+    
+
+
+            
+            
 
 
 
