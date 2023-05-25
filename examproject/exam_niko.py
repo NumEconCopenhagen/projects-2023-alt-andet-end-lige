@@ -21,11 +21,14 @@ class OptimalTaxation:
         par.w_vec = np.linspace(0.5,1.5,100)
         par.tau = 0.3
         par.G = 1.0
+        par.rho = 1.001
+        par.sigma = 1.001
+        par.epsilon = 1.0
         
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L, extension = False):
+    def calc_utility(self, L, extension = False, CES = False):
         """ utility function """
         par = self.par
         sol = self.sol
@@ -39,14 +42,16 @@ class OptimalTaxation:
             C = 1e-10
 
         #c. utility gain from total consumption
-        if extension:
+        if CES: 
+            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)-1/(1-par.rho)
+        elif extension:
             utility = np.log(C**par.alpha*G**(1-par.alpha))
         else:
              utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
         #d. disutility from work 
-        if L == 0:
-            disutility = 0  # Set disutility to zero when L is zero
+        if CES:
+            disutility = par.nu *(L**(1+par.epsilon)/1+par.epsilon) # Set disutility to zero when L is zero
         else:
             disutility = (par.nu * L**2) / 2   
 
@@ -54,13 +59,13 @@ class OptimalTaxation:
         
         return utility - disutility
     
-    def solve(self, extension=False, do_print=False):
+    def solve(self, extension=False, CES=False, do_print=False):
         """ solve model """
         par = self.par
         sol = self.sol
 
         # a. objective function 
-        obj = lambda x: -self.calc_utility(x, extension=extension)
+        obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
         
         # b. initial guess
         initial_guess = 24 #all hours are spent working 
@@ -73,11 +78,15 @@ class OptimalTaxation:
         results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints, tol=1e-08)
 
         #e. Setting the solution equal to the solution namespace:
-        sol.L = results.x
-
+        sol.L = results.x[0]
+    
         #f. Printing result
         if do_print:
-            print(f'L = {sol.L:.2f}')
+            print(f'Optimal labor supply with baseline parameters is {sol.L:.2f}')
+        else: 
+            return sol.L
+        
+        
     
     def solve_w_vec(self, extension=False, do_print=False):
         """ solve model for different wage rates """
@@ -92,7 +101,7 @@ class OptimalTaxation:
             par.w = w
             self.solve(extension=extension)
             sol.L_vec.append(sol.L)
-        
+
         if do_print:
             print(sol.L_vec)
     
@@ -114,7 +123,7 @@ class OptimalTaxation:
         plt.grid(True)
         plt.show()
     
-    def plot_results(self, tau_grid, extension=False):
+    def plot_results(self, tau_grid, extension=False, optimal_tax=False):
         """ plot results for a grid of tau values """
         par = self.par
         sol = self.sol
@@ -142,44 +151,62 @@ class OptimalTaxation:
 
         # Labor supply (L) plot
         ax[0].plot(tau_grid, L_vec)
+        if optimal_tax:
+            self.optimal_tax_cd(extension=extension)
+            ax[0].scatter(self.optimal_tax_cd(extension=extension), self.solve(extension=extension), marker='o', color='red')
         ax[0].set_xlabel('Tau')
         ax[0].set_ylabel('Labor Supply (L)')
         ax[0].set_title('Labor Supply as a Function of Tau')
+        ax[0].grid(True)
 
         # Government consumption (G) plot
         ax[1].plot(tau_grid, G_vec)
+        if optimal_tax:
+            self.optimal_tax_cd(extension=extension)
+            ax[1].scatter(self.optimal_tax_cd(extension=extension), par.tau * par.w * self.solve(extension=extension) * ((1 - par.tau) * par.w), marker='o', color='red')
         ax[1].set_xlabel('Tau')
         ax[1].set_ylabel('Government Consumption (G)')
         ax[1].set_title('Government Consumption as a Function of Tau')
+        ax[1].grid(True)
 
         # Utility plot
         ax[2].plot(tau_grid, utility_vec)
+        if optimal_tax:
+            self.optimal_tax_cd(extension=extension)
+            ax[2].scatter(self.optimal_tax_cd(extension=extension), self.calc_utility(self.solve(extension=extension), extension=extension), marker='o', color='red')
         ax[2].set_xlabel('Tau')
         ax[2].set_ylabel('Worker Utility')
         ax[2].set_title('Worker Utility as a Function of Tau')
-
+        ax[2].grid(True)
+        
         plt.tight_layout()
         plt.show()
 
-    def optimal_tax_cd(self, extension=False): 
-        """ find socially optimal tax rate maximizing worker utility """
+    def optimal_tax_cd(self, extension=False, do_print=False):
+        """Find the tax rate that maximizes worker utility"""
         par = self.par
         sol = self.sol
 
-        # Objective function
-        obj = lambda tau: -self.calc_utility(tau, extension=extension)
+        def obj(tau):
+            """Objective function to maximize worker utility"""
+            self.par.tau = tau
+            self.solve(extension=extension)
+            return -self.calc_utility(self.sol.L, extension=extension)
 
-        # Initial guess
-        initial_guess = 0.5  # Initial guess for tau
+        # Call optimizer to maximize the objective function
+        results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
-        # Bounds and constraints
-        bounds = [(0, 1)]  # Tau must be within (0, 1)
+        # Get the optimal tax rate
+        tau_star = results.x
 
-        # Call optimizer
-        results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, tol=1e-08)
+        # Do print
+        if do_print:
+            print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
+        else:
+            return tau_star
 
-         # Get the optimal tax rate
-        tau_star = results.x[0]
 
-        return tau_star
+
+
+
 

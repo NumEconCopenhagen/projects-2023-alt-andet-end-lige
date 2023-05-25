@@ -117,9 +117,11 @@ class LaborAdjustmentCosts():
         return -self.calc_H(h_values, x)
     
     def max_H(self):
+        x0 = 0.1
+        
         for i, Delta in enumerate(self.par.Deltas):
             obj = lambda x: self.obj_H(Delta, x)
-            result = optimize.minimize_scalar(obj, bounds=(0, 2), method='bounded')
+            result = optimize.minimize(obj,x0, bounds=(0, 2), method='SLSQP')
             self.sol.Delta_values[i] = result.x
             print(f'For Delta = {Delta:.2f} the optimal labor supply is lt = {self.sol.h_values[i]:.2f} which yields profits of {self.profits(1, self.sol.h_values[i]):.2f} \n')
         
