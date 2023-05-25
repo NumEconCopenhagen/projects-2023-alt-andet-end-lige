@@ -65,14 +65,14 @@ class LaborAdjustmentCosts():
             
     ############## Question 2 ################                    
 
-    def calc_H(self, do_print=False):
+    def calc_H(self, Delta=0, do_print=False):
         h_values = np.zeros(self.par.K) #initializing h-values
         
         np.random.seed(1999)
         for k in range(self.par.K): #for loop to iterate over the different shocks
             epsilon = np.random.normal(-0.5 * self.par.sigma_epsilon**2, self.par.sigma_epsilon, size=self.par.T) # Initialize shock series
 
-            #creatuing variables for the shocks in each period
+            #creating variables for the shocks in each period
             lt_prev = 0.0
             kappat_prev = 1.0
             h_k = 0
@@ -82,8 +82,13 @@ class LaborAdjustmentCosts():
                 kappat = np.exp(self.par.rho * np.log(kappat_prev) + epsilon[t])
                 
                 #calculating the labor supply in period t given the optimal labor supply function
-                lt = ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
-                
+                if Delta==0: # used for question problem 2 question 2
+                    lt = ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
+                else: # used for question problem 2 question 3
+                    if np.abs(lt_prev - ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))) > Delta:
+                        lt = ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
+                    else:
+                        lt = lt_prev
                 #calculating profits given the labor supply in period t
                 profits = kappat * lt ** (1-self.par.eta) - self.par.w * lt - (lt != lt_prev) * self.par.iota
 
@@ -100,11 +105,14 @@ class LaborAdjustmentCosts():
         # now we calculate the average value function H by taking the mean of the h_values vector
         H = np.mean(h_values)
         
-        if do_print==True:
-            print(f'The ex ante expected value function H is calculated as the mean of the h_values vector. \n')
-            print(f'For K={self.par.K} the value of H is {H:.2f}')
-
-
+        if do_print==True and Delta==0: #printing results for the case where Delta=0
+            print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
+            print(f'For K={self.par.K} the value of H is {H:.2f}\n')
+        
+        if do_print==True and Delta!=0: #printing results in other cases
+            print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
+            print(f'For K={self.par.K} and Delta={Delta} the value of H is {H:.2f}\n')
+            
 
 
 
