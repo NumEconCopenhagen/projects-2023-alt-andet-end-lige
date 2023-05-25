@@ -43,7 +43,7 @@ class OptimalTaxation:
 
         #c. utility gain from total consumption
         if CES: 
-            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)/(1-par.rho)
+            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)-1/(1-par.rho)
         elif extension:
             utility = np.log(C**par.alpha*G**(1-par.alpha))
         else:
@@ -197,7 +197,7 @@ class OptimalTaxation:
         results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
         # Get the optimal tax rate
-        tau_star = results.x[0]
+        tau_star = results.x
 
         # Do print
         if do_print:
