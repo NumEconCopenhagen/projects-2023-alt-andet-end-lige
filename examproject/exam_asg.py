@@ -18,7 +18,7 @@ class LaborAdjustmentCosts():
         """Create the model"""
         # namespaces
         par = self.par = SimpleNamespace() # namespace for parameters
-        sol = self.sol = SimpleNamespace() #namespace for solutions
+        sol = self. sol = SimpleNamespace() #namespace for solutions
 
         # baseline parameters
         par.eta = 0.5 
@@ -26,7 +26,7 @@ class LaborAdjustmentCosts():
         par.kappas = [1.0, 2.0]
 
         # solutions
-        sol.l = np.nan
+        sol.lt = np.zeros(len(par.kappas))
 
 
         # extended model parameters
@@ -36,29 +36,43 @@ class LaborAdjustmentCosts():
         par.R = (1+0.01)**(1/12)
         
     
-    def supply(lt, yt):
-        lt = yt
-        return yt
+    #def supply(lt, yt):
+      #  lt = yt
+      #  return yt
     
-    def demand(self, kappat, yt):
-        pt = kappat * yt**(-self.par.eta)
-        return pt
+    #def demand(self, kappat, yt):
+       # pt = kappat * yt**(-self.par.eta)
+       # return pt
+       
+
     
-    def profits(self, kappat, yt, lt):
+    def profits(self, kappat, lt):
         profits = kappat * lt**(1-self.par.eta) - self.par.w * lt
         return profits
     
-    def find_optimal_lt(self, kappat):
-        for kappat in self.par.kappas: # for loop to iterate over the different values of kappa
+    def obj(self, kappat, x):
+        return -self.profits(kappat, x)
+        
+    def find_optimal_lt(self):
+        for i,kappat in enumerate(self.par.kappas): # for loop to iterate over the different values of kappa
             # calculating optimal lt given our formula
-            optimal_lt = ((1-self.par.eta)*kappat/self.par.w)**(1/(self.par.eta))
-            self.sol.l = optimal_lt 
+            
+            obj = lambda x: self.obj(kappat, x)
+            
+            result = optimize.minimize_scalar(obj, bounds=(0, 2), method='bounded')
+            
+            self.sol.lt[i] = result.x
+            
+            print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f}')
+            
+            
+            
+            #optimal_lt = ((1-self.par.eta)*kappat/self.par.w)**(1/(self.par.eta))
+            #self.sol.lt = optimal_lt 
             
             #calculating profits given the optimal lt
-            profits = self.profits(self, kappat)
-            print(f'For kappa = {kappat:.1f}, optimal lt = {self.sol.l:.2f}, profits = {profits:.2f}')
+            #profits = self.profits(self, kappat)
+            #print(f'For kappa = {kappat:.1f}, optimal lt = {self.sol.lt:.2f}, profits = {profits:.2f}')
     
-    def obj(self, x):
-        return -self.profits(x)
         
         
