@@ -25,7 +25,7 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L):
+    def calc_utility(self, L, extention = False):
         """ utility function """
         par = self.par
         sol = self.sol
@@ -41,7 +41,10 @@ class OptimalTaxation:
         utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
         #d. disutility from work 
-        disutility = (par.nu*L**2)/2        
+        if L == 0:
+            disutility = 0  # Set disutility to zero when L is zero
+        else:
+            disutility = (par.nu * L**2) / 2   
 
         #e. total utility
         
@@ -167,3 +170,27 @@ class OptimalTaxation:
 
         plt.tight_layout()
         plt.show()
+
+    def optimal_tax_cd(self): 
+        """ find socially optimal tax rate maximizing worker utility """
+        
+        par = self.par
+        sol = self.sol
+
+        # Objective function
+        obj = lambda tau: -self.calc_utility(tau)
+
+        # Initial guess
+        initial_guess = 0.5  # Initial guess for tau
+
+        # Bounds and constraints
+        bounds = [(0, 1)]  # Tau must be within (0, 1)
+
+        # Call optimizer
+        results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, tol=1e-08)
+
+         # Get the optimal tax rate
+        tau_star = results.x[0]
+
+        return tau_star
+
