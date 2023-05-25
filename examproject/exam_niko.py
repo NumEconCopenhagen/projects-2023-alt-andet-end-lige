@@ -37,11 +37,8 @@ class OptimalTaxation:
         C = par.kappa+(1-par.tau)*par.w*L
         G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
-        #b. Handle case when C is zero
-        if C == 0:
-            C = 1e-10
 
-        #c. utility gain from total consumption
+        #b. utility gain from total consumption
         if CES: 
             utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)-1/(1-par.rho)
         elif extension:
@@ -49,13 +46,13 @@ class OptimalTaxation:
         else:
              utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
-        #d. disutility from work 
+        #c. disutility from work 
         if CES:
             disutility = par.nu *(L**(1+par.epsilon)/1+par.epsilon) # Set disutility to zero when L is zero
         else:
             disutility = (par.nu * L**2) / 2   
 
-        #e. total utility
+        #d. total utility
         
         return utility - disutility
     
@@ -66,9 +63,7 @@ class OptimalTaxation:
 
         # a. objective function 
         obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        
-        # b. initial guess
-        initial_guess = 24 #all hours are spent working 
+        initial_guess = 17 #all hours are spent working 
 
         #c. bounds and constraints 
         bounds = [(0,24)]
