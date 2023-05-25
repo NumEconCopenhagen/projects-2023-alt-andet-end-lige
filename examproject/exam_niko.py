@@ -33,6 +33,9 @@ class OptimalTaxation:
         #a. consumption of market goods
         C = par.kappa+(1-par.tau)*par.w*L
 
+        #b. Handle case when C is zero
+        if C == 0:
+            C = 1e-10
 
         #c. utility gain from total consumption
         utility = np.log(C**par.alpha*par.G**(1-par.alpha))
@@ -93,7 +96,7 @@ class OptimalTaxation:
 
         #Solution for different wage rates 
         self.solve_w_vec()  
-        
+
         # Plot L as a function of wage rate
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
@@ -103,7 +106,8 @@ class OptimalTaxation:
         plt.title(r'$L^{\star}(\tilde{w})$')
         plt.grid(True)
         plt.show()
-    
+ 
+
     def ext_government(self): 
         """solve model for different government consumption"""
        
@@ -117,25 +121,49 @@ class OptimalTaxation:
         #b. solve model with new government consumption
         self.solve() 
     
-    def implied_G(self): 
-        """Calculate implied government consumption"""
-
+    def plot_results(self, tau_grid):
+        """ plot results for a grid of tau values """
         par = self.par
         sol = self.sol
 
-        return par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
-    
-    
-    def plot_3d(self): 
-        """ plot 3d graph of utility function as a function of hours worked and implied government consumption for a grid of tau"""
+        # Create empty lists to store results
+        L_vec = []
+        G_vec = []
+        utility_vec = []
 
-        par = self.par
-        sol = self.sol
+        # Loop over tau values
+        for tau in tau_grid:
+            # Set new tau value
+            par.tau = tau
 
-        taus = np.linspace(0,1,100)
+            # Solve model
+            self.ext_government()
 
-        utility = np.empty((100))
+            # Append results to lists
+            L_vec.append(sol.L)
+            G_vec.append(par.tau * par.w * sol.L * ((1 - par.tau) * par.w))
+            utility_vec.append(self.calc_utility(sol.L))
 
-        for tau in enumerate(taus):
-                utility[i] = self.ext_government(tau)
+        # Plotting
+        fig, ax = plt.subplots(3, 1, figsize=(8, 10))
 
+        # Labor supply (L) plot
+        ax[0].plot(tau_grid, L_vec)
+        ax[0].set_xlabel('Tau')
+        ax[0].set_ylabel('Labor Supply (L)')
+        ax[0].set_title('Labor Supply as a Function of Tau')
+
+        # Government consumption (G) plot
+        ax[1].plot(tau_grid, G_vec)
+        ax[1].set_xlabel('Tau')
+        ax[1].set_ylabel('Government Consumption (G)')
+        ax[1].set_title('Government Consumption as a Function of Tau')
+
+        # Utility plot
+        ax[2].plot(tau_grid, utility_vec)
+        ax[2].set_xlabel('Tau')
+        ax[2].set_ylabel('Worker Utility')
+        ax[2].set_title('Worker Utility as a Function of Tau')
+
+        plt.tight_layout()
+        plt.show()
