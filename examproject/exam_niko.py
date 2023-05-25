@@ -219,28 +219,7 @@ class OptimalTaxation:
         else:
             return G_optimal
     
-    
-    def calc_optimal_tax(self, G_optimal, CES=False):
-        """ calculate the optimal tax rate corresponding to the optimal government consumption """
-        par = self.par
-        sol = self.sol
 
-        G_optimal = self.calc_optimal_government_consumption(CES=CES)
-
-        # Define the equation for the objective function
-        objective = np.log((par.kappa + (1 - par.tau) * par.w * sol.L) ** par.alpha * G_optimal ** (1 - par.alpha)) - par.nu * sol.L ** 2 / 2
-
-        # Define the equation for the consumption constraint
-        consumption = sm.Eq(par.kappa + (1 - par.tau) * par.w * sol.L, sol.C)
-
-
-        # Differentiate the substituted objective function with respect to tau
-        foc_tau = sm.diff(objective_subs, par.tau)
-
-        # Solve for the optimal tax rate
-        tau_optimal = sm.solve(foc_tau, par.tau)
-
-        return tau_optimal[0]
 
             
             
