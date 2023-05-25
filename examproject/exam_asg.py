@@ -43,7 +43,10 @@ class LaborAdjustmentCosts():
         p = kappa * y**(-self.par.eta)
         return p
     
-    def profit(self, kappa, l):
+    def profits(self, kappa, l):
         return self.par.kappa * l**(1-self.par.eta)-self.par.w*l
+    
+    def obj(self, x):
+        return -self.profits(x)
         
         
