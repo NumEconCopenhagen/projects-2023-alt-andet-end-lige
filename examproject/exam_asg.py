@@ -28,6 +28,7 @@ class LaborAdjustmentCosts():
         # solutions
         sol.lt = np.zeros(len(par.kappas))
         sol.h = np.zeros(par.K)
+        sol.epsilon = np.zeros(par.T)
 
 
         # extended model parameters
@@ -35,8 +36,9 @@ class LaborAdjustmentCosts():
         par.iota = 0.01
         par.sigma_epsilon = 0.10
         par.R = (1+0.01)**(1/12)
-        par.kappam1 = 1.0
-        par.lm1 = 0.0
+        par.kappat_prev = 1.0
+        par.lt_prev = 0.0
+        par.h_k = 0.0
         
         # Simulation parameters
         par.T = 120 # Planning horizon
@@ -64,10 +66,29 @@ class LaborAdjustmentCosts():
             
     ############## Question 2 ################                    
 
+    def kappat(self, t):
+        self.epsilon = np.random_normal(-0.5*self.par.sigma_epsilon**2, self.par.sigma_epsilon, size=self.par.T)
+        
+        if t==0:
+            self.kappat = np.exp(self.rho * np.log(self.kappat_prev)+self.epsilon[t])
+            return self.kappat
+    
     def ex_ante_expected_value(self):
         for k in range(self.par.K)
         #initialize shocks series
-        epsilon = 
+        epsilon = np.random_normal(-0.5*self.par.sigma_epsilon**2, self.par.sigma_epsilon, size=self.par.T)
+        
+        # finding each shock series
+        for t in range(self.T):
+            if t==0:
+                self.kappat = np.exp(self.rho * np.log(self.kappat_prev)+epsilon[t])
+                return self.kappat
+            else:
+                def kappat(self, t):
+                    return 
+            # calculating demand shock
+            
+        
 
     def demand_shock(self, t):
         return self.par.R**(t) * self.par.kappam1 * self.sol.lt[-1]**(1-self.par.eta)
