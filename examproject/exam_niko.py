@@ -21,11 +21,14 @@ class OptimalTaxation:
         par.w_vec = np.linspace(0.5,1.5,100)
         par.tau = 0.3
         par.G = 1.0
+        par.rho = 1.001
+        par.sigma = 1.001
+        par.epsilon = 1.0
         
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L, extension = False):
+    def calc_utility(self, L, extension = False, CES = False):
         """ utility function """
         par = self.par
         sol = self.sol
@@ -39,14 +42,16 @@ class OptimalTaxation:
             C = 1e-10
 
         #c. utility gain from total consumption
-        if extension:
+        if CES: 
+            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)/(1-par.rho)
+        elif extension:
             utility = np.log(C**par.alpha*G**(1-par.alpha))
         else:
              utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
         #d. disutility from work 
-        if L == 0:
-            disutility = 0  # Set disutility to zero when L is zero
+        if CES:
+            disutility = par.nu *(L**(1+par.epsilon)/1+par.epsilon) # Set disutility to zero when L is zero
         else:
             disutility = (par.nu * L**2) / 2   
 
@@ -54,13 +59,13 @@ class OptimalTaxation:
         
         return utility - disutility
     
-    def solve(self, extension=False, do_print=False):
+    def solve(self, extension=False, CES=False, do_print=False):
         """ solve model """
         par = self.par
         sol = self.sol
 
         # a. objective function 
-        obj = lambda x: -self.calc_utility(x, extension=extension)
+        obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
         
         # b. initial guess
         initial_guess = 24 #all hours are spent working 
@@ -96,8 +101,6 @@ class OptimalTaxation:
             par.w = w
             self.solve(extension=extension)
             sol.L_vec.append(sol.L)
-        
-        return sol.L_vec
 
         if do_print:
             print(sol.L_vec)
@@ -201,11 +204,9 @@ class OptimalTaxation:
             print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
         else:
             return tau_star
-    
-    def ces_utility(self):
-        """Calculate utility for CES utility function"""
-        par = self.par
-        sol = self.sol
+
+
+
 
 
 
