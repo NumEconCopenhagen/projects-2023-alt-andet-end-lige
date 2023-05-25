@@ -25,20 +25,24 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L, extention = False):
+    def calc_utility(self, L, extension = False):
         """ utility function """
         par = self.par
         sol = self.sol
 
-        #a. consumption of market goods
+        #a. consumption of market goods and alternative government consumption
         C = par.kappa+(1-par.tau)*par.w*L
+        G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
         #b. Handle case when C is zero
         if C == 0:
             C = 1e-10
 
         #c. utility gain from total consumption
-        utility = np.log(C**par.alpha*par.G**(1-par.alpha))
+        if extension:
+            utility = np.log(C**par.alpha*G**(1-par.alpha))
+        else:
+             utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
         #d. disutility from work 
         if L == 0:
@@ -50,13 +54,13 @@ class OptimalTaxation:
         
         return utility - disutility
     
-    def solve(self, do_print=False):
+    def solve(self, extension=False, do_print=False):
         """ solve model """
         par = self.par
         sol = self.sol
 
         # a. objective function 
-        obj = lambda x: -self.calc_utility(x)
+        obj = lambda x: -self.calc_utility(x, extension=extension)
         
         # b. initial guess
         initial_guess = 24 #all hours are spent working 
@@ -75,7 +79,7 @@ class OptimalTaxation:
         if do_print:
             print(f'L = {sol.L:.2f}')
     
-    def solve_w_vec(self, do_print=False):
+    def solve_w_vec(self, extension=False, do_print=False):
         """ solve model for different wage rates """
         par = self.par
         sol = self.sol
@@ -86,19 +90,19 @@ class OptimalTaxation:
         # b. loop over wage rates
         for w in par.w_vec:
             par.w = w
-            self.solve()
+            self.solve(extension=extension)
             sol.L_vec.append(sol.L)
         
         if do_print:
             print(sol.L_vec)
     
-    def plot_L(self):
+    def plot_L(self, extension=False):
         """ plot labour supply as a function of wage rate """
         par = self.par
         sol = self.sol
 
         #Solution for different wage rates 
-        self.solve_w_vec()  
+        self.solve_w_vec(extension=extension)  
 
         # Plot L as a function of wage rate
         fig = plt.figure()
@@ -109,22 +113,8 @@ class OptimalTaxation:
         plt.title(r'$L^{\star}(\tilde{w})$')
         plt.grid(True)
         plt.show()
- 
-
-    def ext_government(self): 
-        """solve model for different government consumption"""
-       
-        par = self.par
-        sol = self.sol
-
-        # a. Define new government consumption
-        G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
-        par.G = G
-
-        #b. solve model with new government consumption
-        self.solve() 
     
-    def plot_results(self, tau_grid):
+    def plot_results(self, tau_grid, extension=False):
         """ plot results for a grid of tau values """
         par = self.par
         sol = self.sol
@@ -140,12 +130,12 @@ class OptimalTaxation:
             par.tau = tau
 
             # Solve model
-            self.ext_government()
+            self.solve(extension=extension)
 
             # Append results to lists
             L_vec.append(sol.L)
             G_vec.append(par.tau * par.w * sol.L * ((1 - par.tau) * par.w))
-            utility_vec.append(self.calc_utility(sol.L))
+            utility_vec.append(self.calc_utility(sol.L, extension=extension))
 
         # Plotting
         fig, ax = plt.subplots(3, 1, figsize=(8, 10))
@@ -171,14 +161,13 @@ class OptimalTaxation:
         plt.tight_layout()
         plt.show()
 
-    def optimal_tax_cd(self): 
+    def optimal_tax_cd(self, extension=False): 
         """ find socially optimal tax rate maximizing worker utility """
-        
         par = self.par
         sol = self.sol
 
         # Objective function
-        obj = lambda tau: -self.calc_utility(tau)
+        obj = lambda tau: -self.calc_utility(tau, extension=extension)
 
         # Initial guess
         initial_guess = 0.5  # Initial guess for tau
