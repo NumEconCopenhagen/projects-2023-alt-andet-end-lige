@@ -73,13 +73,13 @@ class OptimalTaxation:
         results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints, tol=1e-08)
 
         #e. Setting the solution equal to the solution namespace:
-        sol.L = results.x
-
-        return sol.L
+        sol.L = results.x[0]
     
         #f. Printing result
         if do_print:
-            print(f'L = {sol.L:.2f}')
+            print(f'Optimal labor supply with baseline parameters is {sol.L:.2f}')
+        else: 
+            return sol.L
         
         
     
@@ -201,5 +201,11 @@ class OptimalTaxation:
             print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
         else:
             return tau_star
+    
+    def ces_utility(self):
+        """Calculate utility for CES utility function"""
+        par = self.par
+        sol = self.sol
+
 
 
