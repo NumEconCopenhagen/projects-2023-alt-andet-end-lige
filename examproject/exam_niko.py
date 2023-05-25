@@ -3,6 +3,7 @@ import numpy as np
 from scipy import optimize
 import pandas as pd 
 import matplotlib.pyplot as plt
+import sympy as sm
 import matplotlib.gridspec as gridspec
 
 class OptimalTaxation: 
@@ -200,6 +201,49 @@ class OptimalTaxation:
             print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
         else:
             return tau_star
+        
+    def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False):
+        """ calculate the optimal government consumption corresponding to tau_star """
+        par = self.par
+        sol = self.sol
+
+        # Solve the model for the given tau_star
+        par.tau = self.optimal_tax_cd(extension=extension)
+        self.solve(CES=CES)
+
+        # Calculate the optimal government consumption
+        G_optimal = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+
+        if do_print:
+            print(f'Government consuption is {G_optimal:6.2f}')
+        else:
+            return G_optimal
+    
+    
+    def calc_optimal_tax(self, G_optimal, CES=False):
+        """ calculate the optimal tax rate corresponding to the optimal government consumption """
+        par = self.par
+        sol = self.sol
+
+        G_optimal = self.calc_optimal_government_consumption(CES=CES)
+
+        # Define the equation for the objective function
+        objective = np.log((par.kappa + (1 - par.tau) * par.w * sol.L) ** par.alpha * G_optimal ** (1 - par.alpha)) - par.nu * sol.L ** 2 / 2
+
+        # Define the equation for the consumption constraint
+        consumption = sm.Eq(par.kappa + (1 - par.tau) * par.w * sol.L, sol.C)
+
+
+        # Differentiate the substituted objective function with respect to tau
+        foc_tau = sm.diff(objective_subs, par.tau)
+
+        # Solve for the optimal tax rate
+        tau_optimal = sm.solve(foc_tau, par.tau)
+
+        return tau_optimal[0]
+
+            
+            
 
 
 
