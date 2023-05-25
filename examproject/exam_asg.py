@@ -23,8 +23,18 @@ class LaborAdjustmentCosts():
         # baseline parameters
         par.eta = 0.5 
         par.w = 1.0 
+
+        # solutions
+        sol.l = np.nan
+
+
+
+    
+        # extended model parameters
         par.rho = 0.90
         par.iota = 0.01
         par.sigma = 0.10
         par.R = (1+0.01)**(1/12)
+        
+        
         
