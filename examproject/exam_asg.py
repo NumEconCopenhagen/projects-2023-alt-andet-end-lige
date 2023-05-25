@@ -129,12 +129,12 @@ class LaborAdjustmentCosts():
         return H
     
 
-    def estimate_K(self,tol=1e-7,do_print=True,do_plot=True):
+    def estimate_K(self,tol=1e-3,do_print=True,do_plot=True):
 
-        H_range = np.empty(len(range(1000,10000,500)))
-        for i,K in enumerate(range(0,10000,500)):
+        H_range = np.empty(len(range(500,10000,500)))
+        for i,K in enumerate(range(500,10000,500)):
             H_range[i] = self.calc_H(K=K)
-            if H_range[i]-H_range[i-1] < tol:
+            if np.abs(H_range[i]-H_range[i-1])<tol:
                 self.sol.K = K #set optimal K 
                 H_K = H_range[i] # store associated H in local
                 H_range[i:] = H_range[i] # set rest of elements in H eq. to H[i]
@@ -143,19 +143,18 @@ class LaborAdjustmentCosts():
                 continue
         
         if do_print:
-            print(f'By comparing different values of H in the range between 0 and 10000 with a step size of 500,')
-            print(f'we choose H')
+            print(f'By comparing different values of H in the range between 0 and 10000 with a step size of 500, we choose K to be {K}')
 
         if do_plot:
             fig = plt.figure(figsize=(7,5))
             ax = fig.add_subplot(1,1,1)
-            ax.plot(range(1,10001,500),H_range, color='green')
+            ax.plot(range(500,10000,500),H_range, color='green')
             ax.scatter(self.sol.K, H_K , color='orange')
-            ax.annotate(f'Choice of K=({self.sol.K}',xy=(self.sol.K,H_K), xytext=(self.sol.K,H_K), textcoords='offset points')
+            #ax.annotate(f'Choice of K=({self.sol.K}',xy=(self.sol.K,H_K), xytext=(self.sol.K,H_K), textcoords='offset points')
             ax.set_xlabel("K")
             ax.set_ylabel("Ex ante expected value")
-            ax.set_xlim([0,10000])
-            ax.set_ylim([27.4,27.7])
+            ax.set_xlim([500,10000])
+            #ax.set_ylim([27.4,30.7])
             plt.grid(True)
             plt.show();            
         
