@@ -18,7 +18,9 @@ class optimaltaxation:
         par.kappa = 1.0 
         par.nu = 1/(2*16**2)
         par.w = 1.0 
+        par.w_vec = np.linspace(0.5,1.5,100)
         par.tau = 0.3
+        par.G = [1.0,2.0]
 
         #c. solution
         sol.L = np.nan
@@ -31,11 +33,8 @@ class optimaltaxation:
         #a. consumption og market goods
         C = par.kappa+(1-par.tau)*par.w*L
 
-        #b. government consumption 
-        G = G**(1-par.alpha)
-
         #c. utility gain from total consumption
-        utility = np.max(np.log(C**par.alpha*G**(1-par.alpha)))
+        utility = np.log(C**par.alpha*par.G**(1-par.alpha))
 
         #d. disutility from work 
         disutility = (par.nu*L**2)/2        
@@ -56,15 +55,33 @@ class optimaltaxation:
         initial_guess = 24 #all hours are spent working 
 
         #c. bounds and constraints 
-        bounds = (0,24)
+        bounds = ((0,24))
         constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
-        results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints, , tol=1e-08)
+        results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints, tol=1e-08)
 
         #e. Setting the solution equal to the solution namespace:
-        sol.L = np.nan = results.x
+        sol.L = results.x
 
         #f. Printing result
         if do_print:
             print(f'L = {sol.L:.2f}')
+    
+    def solve_w_vec(self):
+        """ solve model for different wage rates """
+        par = self.par
+        sol = self.sol
+
+        # a. create empty list
+        sol.L_vec = []
+
+        # b. loop over wage rates
+        for w in par.w_vec:
+            par.w = w
+            self.solve()
+            sol.L_vec = sol.L
+
+        # c. convert to numpy array
+        sol.L_vec = np.array(sol.L_vec)
+    
