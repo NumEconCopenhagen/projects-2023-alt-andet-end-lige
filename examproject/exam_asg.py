@@ -24,17 +24,14 @@ class LaborAdjustmentCosts():
         par.eta = 0.5 
         par.w = 1.0 
         par.kappas = [1.0, 2.0]
-        par.Deltas = np.linspace(0, 1, 100)
         
         # Simulation parameters
         par.T = 120 # Planning horizon
-        par.K = 10000 # number of shocks to simulate
 
         # solutions
         sol.lt = np.zeros(len(par.kappas))
-        sol.h_values = np.zeros(par.K)
         sol.epsilon = np.zeros(par.T)
-        sol.Delta_values = np.zeros(len(par.Deltas))
+        sol.Delta_opt = np.nan
 
 
         # extended model parameters
@@ -62,33 +59,46 @@ class LaborAdjustmentCosts():
             print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f} which yields profits of {self.profits(kappat, self.sol.lt[i]):.2f} \n') #printing results
             
     ############## Question 2 and 3 ################                    
+    def optimal_labor_rule(self,kappat):
+        return ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
 
-    def calc_H(self, Delta=0, do_print=False):
-        h_values = np.zeros(self.par.K) #initializing h-values
-        
+    def profits_func(self,kappat,lt,lt_prev):
+        return kappat * lt ** (1-self.par.eta) - self.par.w * lt - (lt != lt_prev) * self.par.iota
+
+
+    def calc_H(self, Delta=0.0, K = 10000, do_print=False,extension=False):
+        h_values = np.zeros(K) #initializing h-values
+
+
         np.random.seed(1999)
-        for k in range(self.par.K): #for loop to iterate over the different shocks
+        for k in range(K): #for loop to iterate over the different shocks
             epsilon = np.random.normal(-0.5 * self.par.sigma_epsilon**2, self.par.sigma_epsilon, size=self.par.T) # Initialize shock series
-
-            #creating variables for the shocks in each period
+            
+            #creating variables for the shocks in initial period
             lt_prev = 0.0
             kappat_prev = 1.0
             h_k = 0
-            
+                    
             for t in range(self.par.T):
                 #calculating the demand shock in period t
                 kappat = np.exp(self.par.rho * np.log(kappat_prev) + epsilon[t])
                 
-                #calculating the labor supply in period t given the optimal labor supply function
-                if Delta==0: # used for question problem 2 question 2
-                    lt = ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
-                else: # used for question problem 2 question 3
-                    if np.abs(lt_prev - ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))) > Delta:
-                        lt = ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
+                if extension:
+                    if self.profits_func(kappat,self.optimal_labor_rule(kappat),lt_prev)>self.profits_func(kappat,lt_prev,lt_prev):
+                        lt = self.optimal_labor_rule(kappat)
                     else:
                         lt = lt_prev
-                #calculating profits given the labor supply in period t
-                profits = kappat * lt ** (1-self.par.eta) - self.par.w * lt - (lt != lt_prev) * self.par.iota
+                else:
+                    #calculating the labor supply in period t given the optimal labor supply function
+                    if Delta==0: # used for question problem 2 question 2
+                        lt = self.optimal_labor_rule(kappat)
+                    else: # used for question problem 2 question 3
+                        if np.abs(lt_prev - self.optimal_labor_rule(kappat)) > Delta:
+                            lt = self.optimal_labor_rule(kappat)
+                        else:
+                            lt = lt_prev
+                
+                profits = self.profits_func(kappat,lt,lt_prev)
 
                 #Now calculating the discounted value of the salon in time t
                 h_k += self.par.R ** (-t) * profits
@@ -97,35 +107,71 @@ class LaborAdjustmentCosts():
                 lt_prev = lt
                 kappat_prev = kappat
                 
-            #saving the discounted value of the salon in the h_values vector for the k'th shock
+            #saving the discounted value of the salon in the h_values vector for the k'th shock series
             h_values[k] = h_k
         
         # now we calculate the average value function H by taking the mean of the h_values vector
         H = np.mean(h_values)
         
-        if do_print==True and Delta==0: #printing results for the case where Delta=0
-            print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
-            print(f'For K={self.par.K} the value of H is {H:.2f}\n')
-        
-        if do_print==True and Delta!=0: #printing results in other cases
-            print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
-            print(f'For K={self.par.K} and Delta={Delta} the value of H is {H:.2f}\n')
+        if do_print==True: 
+            if extension:
+                print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
+                print(f'For K={K} the value of H is {H:.3f}\n')
+            else:
+                if Delta==0: #printing results for the case where Delta=0
+                    print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
+                    print(f'For K={K} the value of H is {H:.3f}\n')
+                else: #printing results in other cases
+                    print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
+                    print(f'For K={K} and Delta={Delta} the value of H is {H:.3f}\n')
+
+        return H
     
+
+
     ############## Question 4 ################        
 
-    def obj_H(self, h_values, x):
-        return -self.calc_H(h_values, x)
-    
-    def max_H(self):
-        x0 = 0.1
+    def max_H(self,K=1000):
+        Delta0 = 0.1 #initial guess on Delta
         
-        for i, Delta in enumerate(self.par.Deltas):
-            obj = lambda x: self.obj_H(Delta, x)
-            result = optimize.minimize(obj,x0, bounds=(0, 2), method='SLSQP')
-            self.sol.Delta_values[i] = result.x
-            print(f'For Delta = {Delta:.2f} the optimal labor supply is lt = {self.sol.h_values[i]:.2f} which yields profits of {self.profits(1, self.sol.h_values[i]):.2f} \n')
+        # Formulate objective function as the negative of H as we maximize H using a minimizer
+        obj = lambda x: - self.calc_H(Delta=x,K=K)
+
+        result = optimize.minimize(obj, x0=Delta0, bounds=[(0.0, 1.0)], method='Nelder-mead')
+
+        #save result
+        self.sol.Delta_opt = result.x[0]
+
+        # Print results
+        print(f'H is maximized for Delta = {self.sol.Delta_opt:.3f}, implying H={self.calc_H(Delta=self.sol.Delta_opt):.3f}')
         
-        print(f'H is maximized for Delta = {self.par.Deltas[np.argmax(self.sol.h_values)]:.2f} \n')
+
+    def plot_Delta(self,K=1000):
+        H_Delta = np.empty(50)
+        for i,Delta in enumerate(np.linspace(0,0.2,50)):
+            self.par.Delta = Delta
+            H_Delta[i] = self.calc_H(Delta=Delta,K=K)
+        
+        # Generate local variable of optimal H
+        H_opt = self.calc_H(Delta=self.sol.Delta_opt, K=K)
+
+        # Create figure
+        fig = plt.figure(figsize=(7,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.plot(np.linspace(0,0.2,50),H_Delta, color='purple')
+        ax.scatter(self.sol.Delta_opt, H_opt, color='red')
+        ax.annotate(f'(Delta,H)=({self.sol.Delta_opt:.3f},{H_opt:.3f})',xy=(self.sol.Delta_opt-0.01,H_opt), xytext=(self.sol.Delta_opt-0.01,H_opt), textcoords='offset points')
+        ax.set_xlabel(r'$\Delta$')
+        ax.set_ylabel("Ex ante expected value")
+        ax.set_xlim([0,0.2])
+        ax.set_ylim([27.5,29.0])
+        plt.grid(True)
+        plt.show();
+   
+
+
+            
+
 
 
 

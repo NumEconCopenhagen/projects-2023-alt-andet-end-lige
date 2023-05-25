@@ -359,9 +359,9 @@ class HouseholdSpecializationModelClass:
             plt.xlabel(r'$\kappa$')
             plt.ylabel('Function Value')
             plt.title(r'Function Values for Different $\kappa$-values')
-            plt.annotate(f'kappa={self.sol.kappa_hat:.3f}',xy=(self.sol.kappa_hat-0.01,0.01+(self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026), xytext=(self.sol.kappa_hat, -self.sol.kappa_hat), textcoords='offset points');
+            plt.annotate(f'kappa={self.sol.kappa_hat:.3f}',xy=(self.sol.kappa_hat-0.01,0.01+(self.par.beta0_target - self.sol.beta0)**2 + (self.par.beta1_target - self.sol.beta1)**2 - 0.0026), xytext=(self.sol.kappa_hat, -self.sol.kappa_hat), textcoords='offset points')
             plt.grid(True)
-            plt.show()
+            plt.show();
         
         if extension==True and do_print==True:
             print(f'The optimal kappa is: \n')
