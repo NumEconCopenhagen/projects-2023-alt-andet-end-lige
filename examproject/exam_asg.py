@@ -34,6 +34,8 @@ class LaborAdjustmentCosts():
         par.iota = 0.01
         par.sigma = 0.10
         par.R = (1+0.01)**(1/12)
+        par.kappam1 = 1.0
+        par.lm1 = 0.0
         
     
     #def supply(lt, yt):
@@ -63,7 +65,7 @@ class LaborAdjustmentCosts():
             
             self.sol.lt[i] = result.x
             
-            print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f}')
+            print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f} which yields profits of {self.profits(kappat, self.sol.lt[i]):.2f} \n')
             
             
             
