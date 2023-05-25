@@ -24,6 +24,7 @@ class LaborAdjustmentCosts():
         par.eta = 0.5 
         par.w = 1.0 
         par.kappas = [1.0, 2.0]
+        par.Deltas = np.linspace(0, 1, 100)
         
         # Simulation parameters
         par.T = 120 # Planning horizon
@@ -33,6 +34,7 @@ class LaborAdjustmentCosts():
         sol.lt = np.zeros(len(par.kappas))
         sol.h_values = np.zeros(par.K)
         sol.epsilon = np.zeros(par.T)
+        sol.Delta_values = np.zeros(len(par.Deltas))
 
 
         # extended model parameters
@@ -63,7 +65,7 @@ class LaborAdjustmentCosts():
             
             print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f} which yields profits of {self.profits(kappat, self.sol.lt[i]):.2f} \n') #printing results
             
-    ############## Question 2 ################                    
+    ############## Question 2 and 3 ################                    
 
     def calc_H(self, Delta=0, do_print=False):
         h_values = np.zeros(self.par.K) #initializing h-values
@@ -112,9 +114,20 @@ class LaborAdjustmentCosts():
         if do_print==True and Delta!=0: #printing results in other cases
             print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
             print(f'For K={self.par.K} and Delta={Delta} the value of H is {H:.2f}\n')
-            
+    
+    ############## Question 4 ################        
 
-
+    def obj_H(self, h_values, x):
+        return -self.calc_H(h_values, x)
+    
+    def max_H(self):
+        for i, Delta in enumerate(self.par.Deltas):
+            obj = lambda x: self.obj_H(Delta, x)
+            result = optimize.minimize_scalar(obj, bounds=(0, 2), method='bounded')
+            self.sol.Delta_values[i] = result.x
+            print(f'For Delta = {Delta:.2f} the optimal labor supply is lt = {self.sol.h_values[i]:.2f} which yields profits of {self.profits(1, self.sol.h_values[i]):.2f} \n')
+        
+        print(f'H is maximized for Delta = {self.par.Deltas[np.argmax(self.sol.h_values)]:.2f} \n')
 
 
 
