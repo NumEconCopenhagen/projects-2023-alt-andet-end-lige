@@ -20,8 +20,8 @@ class optimaltaxation:
         par.w = 1.0 
         par.w_vec = np.linspace(0.5,1.5,100)
         par.tau = 0.3
-        par.G = [1.0,2.0]
-
+        par.G = 1.0
+        
         #c. solution
         sol.L = np.nan
 
@@ -30,8 +30,9 @@ class optimaltaxation:
         par = self.par
         sol = self.sol
 
-        #a. consumption og market goods
+        #a. consumption of market goods
         C = par.kappa+(1-par.tau)*par.w*L
+
 
         #c. utility gain from total consumption
         utility = np.log(C**par.alpha*par.G**(1-par.alpha))
@@ -55,7 +56,7 @@ class optimaltaxation:
         initial_guess = 24 #all hours are spent working 
 
         #c. bounds and constraints 
-        bounds = ((0,24))
+        bounds = [(0,24)]
         constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
@@ -80,8 +81,7 @@ class optimaltaxation:
         for w in par.w_vec:
             par.w = w
             self.solve()
-            sol.L_vec = sol.L
-
-        # c. convert to numpy array
-        sol.L_vec = np.array(sol.L_vec)
+            sol.L_vec.append(sol.L)
     
+    def ext_government(self): 
+        
