@@ -48,16 +48,12 @@ class LaborAdjustmentCosts():
     ############## Question 1 ################
     
     def profits(self, kappat, lt): # defining the profits function
-        profits = kappat * lt**(1-self.par.eta) - self.par.w * lt #calculating profits given the formula
-        return profits
+        return kappat * lt**(1-self.par.eta) - self.par.w * lt #calculating profits given the formula
     
-    def obj(self, kappat, x): # defining the objective function
-        return -self.profits(kappat, x) # negative sign because we want to maximize profits using a minimizer
-        
     def find_optimal_lt(self): # defining the function that finds the optimal lt for each value of kappa
-        for i,kappat in enumerate(self.par.kappas): # for loop to iterate over the different values of kappa
-            
-            obj = lambda x: self.obj(kappat, x) #calling the objective function
+        for i,kappat in enumerate(self.par.kappas): # for loop to iterate over the different values of kappa 
+            # Formulate objective function (negative of profit function)
+            obj = lambda x: -self.profits(kappat, x)
             
             result = optimize.minimize_scalar(obj, bounds=(0, 2), method='bounded') #using the bounded method to find the optimal lt that maximizes profits
             
