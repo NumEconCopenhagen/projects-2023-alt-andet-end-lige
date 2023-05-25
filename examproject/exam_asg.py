@@ -28,13 +28,22 @@ class LaborAdjustmentCosts():
         sol.l = np.nan
 
 
-
-    
         # extended model parameters
         par.rho = 0.90
         par.iota = 0.01
         par.sigma = 0.10
         par.R = (1+0.01)**(1/12)
         
+    
+    def supply(l, y):
+        l = y
+        return y
+    
+    def demand(self, kappa, y):
+        p = kappa * y**(-self.par.eta)
+        return p
+    
+    def profit(self, kappa, l):
+        return self.par.kappa * l**(1-self.par.eta)-self.par.w*l
         
         
