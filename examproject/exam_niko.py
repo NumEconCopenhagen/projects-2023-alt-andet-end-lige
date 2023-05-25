@@ -28,33 +28,32 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
 
-    def calc_utility(self, L, extension = False, CES = False):
+    def calc_utility(self, L, extension=False, CES=False):
         """ utility function """
         par = self.par
         sol = self.sol
 
-        #a. consumption of market goods and alternative government consumption
-        C = par.kappa+(1-par.tau)*par.w*L
+        # a. consumption of market goods and alternative government consumption
+        C = par.kappa + (1 - par.tau) * par.w * L
         G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
-
-        #b. utility gain from total consumption
-        if CES: 
-            utility = ((((par.alpha)*C**((par.sigma-1)/par.sigma)+(1-par.alpha)*G**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1)))**1-par.rho)-1/(1-par.rho)
-        elif extension:
-            utility = np.log(C**par.alpha*G**(1-par.alpha))
-        else:
-             utility = np.log(C**par.alpha*par.G**(1-par.alpha))
-
-        #c. disutility from work 
+        # b. utility gain from total consumption
         if CES:
-            disutility = par.nu *(L**(1+par.epsilon)/1+par.epsilon) # Set disutility to zero when L is zero
+            utility = ((((par.alpha * C ** ((par.sigma - 1) / par.sigma)) + ((1 - par.alpha) * G ** ((par.sigma - 1) / par.sigma))) ** (par.sigma / (par.sigma - 1))) ** (1 - par.rho) - 1) / (1 - par.rho)
+        elif extension:
+            utility = np.log(C ** par.alpha * G ** (1 - par.alpha))
         else:
-            disutility = (par.nu * L**2) / 2   
+            utility = np.log(C ** par.alpha * par.G ** (1 - par.alpha))
 
-        #d. total utility
-        
+        # c. disutility from work
+        if CES:
+            disutility = par.nu * (L ** (1 + par.epsilon) / (1 + par.epsilon))  # Set disutility to zero when L is zero
+        else:
+            disutility = (par.nu * L ** 2) / 2
+
+        # d. total utility
         return utility - disutility
+
     
     def solve(self, extension=False, CES=False, do_print=False):
         """ solve model """
@@ -63,7 +62,7 @@ class OptimalTaxation:
 
         # a. objective function 
         obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        initial_guess = 17 #all hours are spent working 
+        initial_guess = 24 #all hours are spent working 
 
         #c. bounds and constraints 
         bounds = [(0,24)]
@@ -76,7 +75,9 @@ class OptimalTaxation:
         sol.L = results.x[0]
     
         #f. Printing result
-        if do_print:
+        if do_print & CES:
+            print(f'Optimal labor supply with CES utility function is {sol.L:.2f}')
+        elif do_print:
             print(f'Optimal labor supply with baseline parameters is {sol.L:.2f}')
         else: 
             return sol.L
