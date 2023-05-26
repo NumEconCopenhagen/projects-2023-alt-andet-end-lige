@@ -29,6 +29,10 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
 
+    def L_opt(self):
+        return (-self.par.kappa+np.sqrt(self.par.kappa**2+4*self.par.alpha*(1/self.par.nu)*((1-self.par.tau)*self.par.w)**2))/(2*(1-self.par.tau)*self.par.w)
+
+
     def calc_utility(self, L, extension=False, CES=False):
         """ utility function """
         par = self.par
@@ -36,13 +40,11 @@ class OptimalTaxation:
 
         # a. consumption of market goods and alternative government consumption
         if CES: 
-            par.w = 1.0
             C = par.kappa + (1 - par.tau) * par.w * L
-            G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+            G = par.tau * par.w * self.L_opt()
         elif extension:
-            par.w = 1.0
             C = par.kappa + (1 - par.tau) * par.w * L
-            G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+            G = par.tau * par.w * self.L_opt()
         else: 
             C = par.kappa + (1 - par.tau) * par.w * L
 
@@ -77,7 +79,6 @@ class OptimalTaxation:
 
         #c. bounds and constraints 
         bounds = (0,24)
-        #constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
         results = optimize.minimize_scalar(obj, method='bounded', 
@@ -126,7 +127,7 @@ class OptimalTaxation:
         ax = fig.add_subplot(1, 1, 1)
         ax.plot(par.w_vec, sol.L_vec)
         ax.set_xlabel('Wage rate')
-        ax.set_ylabel('Hours worked')
+        ax.set_ylabel('Optimal labor hours')
         plt.title(r'$L^{\star}(\tilde{w})$')
         plt.grid(True)
         plt.show()
