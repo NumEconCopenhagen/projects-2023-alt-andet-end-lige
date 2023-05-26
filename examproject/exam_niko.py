@@ -244,8 +244,9 @@ class OptimalTaxation:
         else:
             return calc_G
     
+
     def optimal_tax_ces(self, extension=False, CES=False, do_print=False, set_2=False): 
-        """ calculate the taxrate keeping G"""
+        """ calculate the tax rate keeping G"""
         par = self.par
         sol = self.sol
 
@@ -253,8 +254,9 @@ class OptimalTaxation:
             def obj(tau):
                 """Objective function to maximize worker utility"""
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES, set_2=set_2)
-                self.solve(CES=CES)
-                return -self.calc_utility(self.sol.L, CES=CES) 
+                utility = self.calc_utility(sol.L, CES=CES)
+                return -utility
+
             results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
             # Get the optimal tax rate
@@ -268,8 +270,9 @@ class OptimalTaxation:
             def obj(tau):
                 """Objective function to maximize worker utility"""
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
-                self.solve(CES=CES)
-                return -self.calc_utility(self.sol.L, CES=CES) 
+                utility = self.calc_utility(sol.L, CES=CES)
+                return -utility
+
             results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
             # Get the optimal tax rate
@@ -278,7 +281,7 @@ class OptimalTaxation:
             #print
             if do_print:
                 print(f'The tax rate that maximizes workers utility keeping G with the first set of parameters is {tau_star_set_1:3.2f}')
-            
+
 
 
 
