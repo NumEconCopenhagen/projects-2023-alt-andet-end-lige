@@ -28,6 +28,7 @@ class OptimalTaxation:
         
         #c. solution
         sol.L = np.nan
+        sol.tau_opt = np.nan
 
     def L_opt(self):
         return (-self.par.kappa+np.sqrt(self.par.kappa**2+4*self.par.alpha*(1/self.par.nu)*((1-self.par.tau)*self.par.w)**2))/(2*(1-self.par.tau)*self.par.w)
@@ -65,6 +66,8 @@ class OptimalTaxation:
             disutility = (par.nu * L ** 2) / 2
 
         # d. total utility
+
+
         return utility - disutility
 
     
@@ -132,7 +135,7 @@ class OptimalTaxation:
         plt.grid(True)
         plt.show()
     
-    def plot_results(self, tau_grid, extension=False, optimal_tax=False):
+    def plot_results(self, tau_grid, extension=True, optimal_tax=False):
         """ plot results for a grid of tau values """
         par = self.par
         sol = self.sol
@@ -191,12 +194,13 @@ class OptimalTaxation:
         ax[2].set_xlabel('Tau')
         ax[2].set_ylabel('Worker Utility')
         ax[2].set_title('Worker Utility as a Function of Tau')
+        ax[2].set_ylim([0,2])
         ax[2].grid(True)
         
         plt.tight_layout()
         plt.show()
 
-    def optimal_tax_cd(self, extension=False, do_print=False):
+    def optimal_tax_cd(self, extension=True, do_print=False):
         """Find the tax rate that maximizes worker utility"""
         par = self.par
         sol = self.sol
@@ -211,13 +215,13 @@ class OptimalTaxation:
         results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
         # Get the optimal tax rate
-        tau_star = results.x
+        sol.tau_opt = results.x
 
         # Do print
         if do_print:
-            print(f'The tax rate that maximizes workers utility is {tau_star:3.2f}')
+            print(f'The tax rate that maximizes workers utility is {sol.tau_opt:3.2f}')
         else:
-            return tau_star
+            return sol.tau_opt
         
     def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False, set_2=False):
         """ calculate the government consumption corresponding to tau_star """
