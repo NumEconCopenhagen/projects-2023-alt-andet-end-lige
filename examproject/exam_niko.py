@@ -96,7 +96,7 @@ class OptimalTaxation:
         
         
     
-    def solve_w_vec(self, extension=False, do_print=False):
+    def solve_w_vec(self, do_print=False):
         """ solve model for different wage rates """
         par = self.par
         sol = self.sol
@@ -107,7 +107,7 @@ class OptimalTaxation:
         # b. loop over wage rates
         for w in par.w_vec:
             par.w = w
-            self.solve(extension=extension)
+            self.solve()
             sol.L_vec.append(sol.L)
 
         if do_print:
@@ -119,7 +119,7 @@ class OptimalTaxation:
         sol = self.sol
 
         #Solution for different wage rates 
-        self.solve_w_vec(extension=extension)  
+        self.solve_w_vec()  
 
         # Plot L as a function of wage rate
         fig = plt.figure()
@@ -137,7 +137,7 @@ class OptimalTaxation:
         sol = self.sol
 
         par.w = 1.0
-        
+
         # Create empty lists to store results
         L_vec = []
         G_vec = []
@@ -222,17 +222,16 @@ class OptimalTaxation:
         """ calculate the government consumption corresponding to tau_star """
         par = self.par
         sol = self.sol
+        par.w = 1.0
 
         # Solve the model for the given tau_star and different parameters:  
         if set_2:
-            par.w = 1.0
             par.sigma = 1.5 
             par.rho = 1.5 
             par.epsilon = 1.0
             par.tau = self.optimal_tax_cd(extension=extension)
             self.solve(CES=CES)
         else:
-            par.w = 1.0
             par.tau = self.optimal_tax_cd(extension=extension)
             self.solve(CES=CES)
 
@@ -255,7 +254,9 @@ class OptimalTaxation:
         if set_2: 
             def obj(tau):
                 """Objective function to maximize worker utility"""
+                
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES, set_2=set_2)
+                self.solve(CES=CES)
                 utility = self.calc_utility(sol.L, CES=CES)
                 return -utility
 
@@ -272,7 +273,8 @@ class OptimalTaxation:
             def obj(tau):
                 """Objective function to maximize worker utility"""
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
-                utility = self.calc_utility(sol.L, CES=CES)
+                self.solve(CES=CES)
+                utility = self.calc_utility(sol.L, G, CES=CES)
                 return -utility
 
             results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
