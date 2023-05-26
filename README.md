@@ -1,10 +1,5 @@
 # Alt andet end lige
 
-**Group members:**
-- Nikoline 
-- Malthe
-- Asger
-
 This repository contains  
 1. Inaugural project. 
 - In this project, we numerically solve the model from the assignment "Time Use of Couples". The project explores the division of labor in the home and in the market between males and females and how this work division impacts the aggregate utility of the household.
