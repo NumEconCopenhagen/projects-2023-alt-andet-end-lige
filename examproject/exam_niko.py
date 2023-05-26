@@ -235,6 +235,7 @@ class OptimalTaxation:
         self.solve(CES=CES)
 
         # Calculate the government consumption
+        par.tau = self.optimal_tax_cd(extension=extension)
         calc_G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
         if do_print & set_2:
