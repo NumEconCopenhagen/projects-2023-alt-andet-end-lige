@@ -206,11 +206,6 @@ class LaborAdjustmentCosts():
 
 ########################################## Problem 3 ##########################################
 
-from types import SimpleNamespace
-import numpy as np
-from scipy import optimize
-import matplotlib.pyplot as plt
-
 class Problem3():
     def __init__(self):
         """Create model"""
