@@ -29,25 +29,27 @@ class OptimalTaxation:
         #c. solution
         sol.L = np.nan
         sol.G_opt = np.nan
+        sol.tau_opt = np.nan
 
     def L_opt(self):
         return (-self.par.kappa+np.sqrt(self.par.kappa**2+4*self.par.alpha*(1/self.par.nu)*((1-self.par.tau)*self.par.w)**2))/(2*(1-self.par.tau)*self.par.w)
 
 
-    def calc_utility(self, L, G_CES=0, extension=False, CES=False):
+    def calc_utility(self, L, G_CES=0, tau_opt=0.3, extension=False, CES=False):
         """ utility function """
         par = self.par
         sol = self.sol
 
         # a. consumption of market goods and alternative government consumption
         if CES: 
-            C = par.kappa + (1 - par.tau) * par.w * L
+            C = par.kappa + (1 - tau_opt) * par.w * L
             G = G_CES
         elif extension:
             C = par.kappa + (1 - par.tau) * par.w * L
             G = par.tau * par.w * self.L_opt()
         else: 
             C = par.kappa + (1 - par.tau) * par.w * L
+
 
         # b. utility gain from total consumption
         if CES:
@@ -65,19 +67,18 @@ class OptimalTaxation:
         else:
             disutility = (par.nu * L ** 2) / 2
 
+
         # d. total utility
-
-
         return utility - disutility
 
     
-    def solve(self, G_CES=0, extension=False, CES=False, do_print=False):
+    def solve(self, G_CES=0, tau_opt=0, extension=False, CES=False, do_print=False):
         """ solve model """
         par = self.par
         sol = self.sol
 
         # a. objective function 
-        obj = lambda x: -self.calc_utility(x,G_CES=G_CES, extension=extension, CES=CES)
+        obj = lambda x: -self.calc_utility(x,G_CES=G_CES, tau_opt=tau_opt, extension=extension, CES=CES)
         
 
         #c. bounds and constraints 
@@ -205,8 +206,8 @@ class OptimalTaxation:
 
         def obj(tau):
             """Objective function to maximize worker utility"""
-            self.par.tau = tau
-            self.solve(extension=extension)
+            self.par.tau = tau 
+            self.solve(extension=extension) # find optimal L given tau
             return -self.calc_utility(self.sol.L,  extension=extension)
 
         # Call optimizer to maximize the objective function
@@ -221,65 +222,53 @@ class OptimalTaxation:
         else:
             return tau_star
         
-    def calc_optimal_government_consumption(self, do_print=False, set_2=False):
+    def solve_G(self, tau=0.3, do_print=False, set_2=False):
         """ calculate the government consumption corresponding to tau_star """
         par = self.par
         sol = self.sol
-        par.tau = self.optimal_tax_cd(extension=True)
+        #tau = self.optimal_tax_cd(extension=True)
 
         # Set alternative parameters:  
         if set_2:
             par.sigma = 1.5 
             par.rho = 1.5 
             par.epsilon = 1.0
-  
-        #Solve the model, and find G
-        obj = lambda G: par.tau*par.w*self.solve(G_CES=G,CES=True)-G
 
-        # Solve
+        # Define objective function 
+        obj = lambda G: par.tau*par.w*self.solve(G_CES=G,tau_opt=tau, CES=True)-G
+
+        # Solve using a root optimiser (initial guess is 5)
         G_res = optimize.root(obj,x0=[5])
 
         # Save result
         sol.G_opt = G_res.x[0]
 
+        return sol.G_opt
+
             
 
-    def optimal_tax_ces(self, extension=False, CES=False, do_print=False, set_2=False): 
+    def optimal_tax_ces(self, do_print=False, set_2=False): 
         """ calculate the tax rate keeping G"""
         par = self.par
         sol = self.sol
 
-        if set_2: 
-            def obj(tau):
-                """Objective function to maximize worker utility"""
-                G = self.calc_optimal_government_consumption(extension=extension, CES=CES, set_2=set_2)
-                self.solve(CES=CES)
-                utility = self.calc_utility(sol.L, CES=CES)
-                return -utility
-            results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
+        if set_2:
+            par.sigma = 1.5 
+            par.rho = 1.5 
+            par.epsilon = 1.0
 
-            # Get the optimal tax rate
-            tau_star_set_2 = results.x
 
-            #print
-            if do_print:
-                print(f'The tax rate that maximizes workers utility keeping G with the second set of parameters is {tau_star_set_2:3.2f}')
+        def obj(tau):
+            self.solve_G(tau)
+            self.solve(G_CES=sol.G_opt,tau_opt=tau,CES=True) # find optimal L given G and tau
+            return -self.calc_utility(self.sol.L, G_CES=sol.G_opt,tau_opt=tau,CES=True)
+        
+        # Call optimizer to maximize the objective function
+        tau_res = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
-        else: 
-            def obj(tau):
-                """Objective function to maximize worker utility"""
-                G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
-                self.solve(CES=CES)
-                utility = self.calc_utility(sol.L, G, CES=CES)
-                return -utility
-            results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
+        # save results
+        sol.tau_opt = tau_res.x
 
-            # Get the optimal tax rate
-            tau_star_set_1 = results.x
-
-            #print
-            if do_print:
-                print(f'The tax rate that maximizes workers utility keeping G with the first set of parameters is {tau_star_set_1:3.2f}')
 
 
 
