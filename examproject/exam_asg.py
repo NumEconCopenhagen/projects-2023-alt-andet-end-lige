@@ -177,7 +177,7 @@ class LaborAdjustmentCosts():
         self.sol.Delta_opt = result.x[0]
 
         # Print results
-        print(f'H is maximized for Delta = {self.sol.Delta_opt:.3f}, implying H={result.fun:.3f}')
+        print(f'H is maximized for Delta = {self.sol.Delta_opt:.3f}, implying H={-result.fun:.3f}')
         
 
     def plot_Delta(self,K=1000):
