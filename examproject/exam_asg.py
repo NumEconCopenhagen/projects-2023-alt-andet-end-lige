@@ -182,8 +182,8 @@ class LaborAdjustmentCosts():
 
     def plot_Delta(self,K=1000):
 
-        H_Delta = np.empty(50)
-        for i,Delta in enumerate(np.linspace(0,0.2,50)):
+        H_Delta = np.empty(30)
+        for i,Delta in enumerate(np.linspace(0,0.2,30)):
             self.par.Delta = Delta
             H_Delta[i] = self.calc_H(Delta=Delta,K=K)
         
@@ -193,7 +193,7 @@ class LaborAdjustmentCosts():
         # Create figure
         fig = plt.figure(figsize=(7,5))
         ax = fig.add_subplot(1,1,1)
-        ax.plot(np.linspace(0,0.2,50),H_Delta, color='purple')
+        ax.plot(np.linspace(0,0.2,30),H_Delta, color='purple')
         ax.scatter(self.sol.Delta_opt, H_opt, color='red')
         #ax.annotate(f'(Delta,H)=({self.sol.Delta_opt:.3f},{H_opt:.3f})',xy=(self.sol.Delta_opt-0.01,H_opt), xytext=(self.sol.Delta_opt-0.01,H_opt), textcoords='offset points')
         ax.set_xlabel(r'$\Delta$')
