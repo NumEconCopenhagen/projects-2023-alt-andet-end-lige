@@ -194,6 +194,7 @@ class LaborAdjustmentCosts():
         #ax.annotate(f'(Delta,H)=({self.sol.Delta_opt:.3f},{H_opt:.3f})',xy=(self.sol.Delta_opt-0.01,H_opt), xytext=(self.sol.Delta_opt-0.01,H_opt), textcoords='offset points')
         ax.set_xlabel(r'$\Delta$')
         ax.set_ylabel("Ex ante expected value")
+        ax.set_title("$H$ for different values of $\Delta$")
         ax.set_xlim([0,0.2])
         ax.set_ylim([27.5,29.0])
         plt.grid(True)
