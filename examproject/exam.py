@@ -15,7 +15,7 @@ plt.rcParams.update({'font.size': 10})
 
 class LaborAdjustmentCosts():
     def __init__(self):
-        """Create the model"""
+        """Creates the model"""
         # namespaces
         par = self.par = SimpleNamespace() # namespace for parameters
         sol = self.sol = SimpleNamespace() # namespace for solutions
@@ -70,7 +70,7 @@ class LaborAdjustmentCosts():
 
 
     def calc_H(self, Delta=0.0, K = 3500, do_print=False,extension=False):
-        """Calculating the ex ante expected value of the salon"""
+        """Calculates the ex ante expected value of the salon"""
         h_values = np.zeros(K) #initializing h-values
 
         np.random.seed(1999) # set seed
@@ -131,7 +131,7 @@ class LaborAdjustmentCosts():
     
 
     def estimate_K(self,tol=1e-2,do_print=True,do_plot=True):
-        """Estimate optimal K"""
+        """Estimates optimal K"""
         H_range = np.empty(len(range(500,6500,500)))
         H_K = 0.0
         for i,K in enumerate(range(500,6500,500)):
