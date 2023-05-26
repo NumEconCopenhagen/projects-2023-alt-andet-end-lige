@@ -35,16 +35,26 @@ class OptimalTaxation:
         sol = self.sol
 
         # a. consumption of market goods and alternative government consumption
-        C = par.kappa + (1 - par.tau) * par.w * L
-        G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+        if CES: 
+            par.w = 1.0
+            C = par.kappa + (1 - par.tau) * par.w * L
+            G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+        elif extension:
+            par.w = 1.0
+            C = par.kappa + (1 - par.tau) * par.w * L
+            G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
+        else: 
+            C = par.kappa + (1 - par.tau) * par.w * L
 
         # b. utility gain from total consumption
         if CES:
-            utility = ((((par.alpha * C ** ((par.sigma - 1) / par.sigma)) + ((1 - par.alpha) * G ** ((par.sigma - 1) / par.sigma))) ** (par.sigma / (par.sigma - 1))) ** (1 - par.rho) - 1) / (1 - par.rho)
+            utility = ((((par.alpha * C ** ((par.sigma - 1) / par.sigma)) + 
+                         ((1 - par.alpha) * G ** ((par.sigma - 1) / par.sigma))) ** (par.sigma / (par.sigma - 1))) 
+                         ** (1 - par.rho) - 1) / (1 - par.rho) #CES utility function
         elif extension:
-            utility = np.log(C ** par.alpha * G ** (1 - par.alpha))
+            utility = np.log(C ** par.alpha * G ** (1 - par.alpha)) #Utility with government consumption
         else:
-            utility = np.log(C ** par.alpha * par.G ** (1 - par.alpha))
+            utility = np.log(C ** par.alpha * par.G ** (1 - par.alpha)) #Utility 
 
         # c. disutility from work
         if CES:
@@ -198,24 +208,33 @@ class OptimalTaxation:
 
         # Do print
         if do_print:
-            print(f'The tax rate that maximizes workers utility is {tau_star:6.2f}')
+            print(f'The tax rate that maximizes workers utility is {tau_star:3.2f}')
         else:
             return tau_star
         
-    def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False):
+    def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False, set_2=False):
         """ calculate the optimal government consumption corresponding to tau_star """
         par = self.par
         sol = self.sol
 
-        # Solve the model for the given tau_star
-        par.tau = self.optimal_tax_cd(extension=extension)
-        self.solve(CES=CES)
+        # Solve the model for the given tau_star and different parameters:  
+        if set_2:
+            par.w = 1.0
+            par.sigma = 1.5 
+            par.rho = 1.5 
+            par.tau = self.optimal_tax_cd(extension=extension)
+            self.solve(CES=CES)
+        else:
+            par.tau = self.optimal_tax_cd(extension=extension)
+            self.solve(CES=CES)
 
         # Calculate the optimal government consumption
         G_optimal = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
 
-        if do_print:
-            print(f'Government consuption is {G_optimal:6.2f}')
+        if do_print & set_2:
+            print(f'Government consumption with the second set of parameters is {G_optimal:3.2f}')
+        elif do_print:   
+            print(f'Government consumption with the first set of parameters is {G_optimal:3.2f}')
         else:
             return G_optimal
     
