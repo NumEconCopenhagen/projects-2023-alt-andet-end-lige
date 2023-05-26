@@ -80,7 +80,8 @@ class OptimalTaxation:
         constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
-        results = optimize.minimize(obj, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints, tol=1e-08)
+        results = optimize.minimize(obj, initial_guess, method='SLSQP', 
+                                    bounds=bounds, constraints=constraints, tol=1e-08)
 
         #e. Setting the solution equal to the solution namespace:
         sol.L = results.x[0]
@@ -160,7 +161,8 @@ class OptimalTaxation:
         ax[0].plot(tau_grid, L_vec)
         if optimal_tax:
             self.optimal_tax_cd(extension=extension)
-            ax[0].scatter(self.optimal_tax_cd(extension=extension), self.solve(extension=extension), marker='o', color='red')
+            ax[0].scatter(self.optimal_tax_cd(extension=extension), self.solve(extension=extension), 
+                          marker='o', color='red')
         ax[0].set_xlabel('Tau')
         ax[0].set_ylabel('Labor Supply (L)')
         ax[0].set_title('Labor Supply as a Function of Tau')
@@ -170,7 +172,8 @@ class OptimalTaxation:
         ax[1].plot(tau_grid, G_vec)
         if optimal_tax:
             self.optimal_tax_cd(extension=extension)
-            ax[1].scatter(self.optimal_tax_cd(extension=extension), par.tau * par.w * self.solve(extension=extension) * ((1 - par.tau) * par.w), marker='o', color='red')
+            ax[1].scatter(self.optimal_tax_cd(extension=extension), 
+                          par.tau * par.w * self.solve(extension=extension) * ((1 - par.tau) * par.w), marker='o', color='red')
         ax[1].set_xlabel('Tau')
         ax[1].set_ylabel('Government Consumption (G)')
         ax[1].set_title('Government Consumption as a Function of Tau')
@@ -180,7 +183,8 @@ class OptimalTaxation:
         ax[2].plot(tau_grid, utility_vec)
         if optimal_tax:
             self.optimal_tax_cd(extension=extension)
-            ax[2].scatter(self.optimal_tax_cd(extension=extension), self.calc_utility(self.solve(extension=extension), extension=extension), marker='o', color='red')
+            ax[2].scatter(self.optimal_tax_cd(extension=extension), 
+                          self.calc_utility(self.solve(extension=extension), extension=extension), marker='o', color='red')
         ax[2].set_xlabel('Tau')
         ax[2].set_ylabel('Worker Utility')
         ax[2].set_title('Worker Utility as a Function of Tau')
@@ -238,9 +242,38 @@ class OptimalTaxation:
         else:
             return G_optimal
     
+    def optimal_tax_ces(self, extension=False, CES=False, do_print=False, set_2=False): 
+        if set_2: 
+            def obj(tau):
+                """Objective function to maximize worker utility"""
+                self.par.tau = tau
+                G = self.calc_optimal_government_consumption(extension=extension, CES=CES, set_2=set_2)
+                self.solve(extension=extension, CES=CES)
+                return -self.calc_utility(self.sol.L, extension=extension) 
+            results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
+            # Get the optimal tax rate
+            tau_star_set_2 = results.x
 
-            
+            #print
+            if do_print:
+                print(f'The tax rate that maximizes workers utility keeping G with the second set of parameters is {tau_star_set_2:3.2f}')
+
+        else: 
+            def obj(tau):
+                """Objective function to maximize worker utility"""
+                self.par.tau = tau
+                G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
+                self.solve(extension=extension, CES=CES)
+                return -self.calc_utility(self.sol.L, extension=extension) 
+            results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
+
+            # Get the optimal tax rate
+            tau_star_set_1 = results.x
+
+            #print
+            if do_print:
+                print(f'The tax rate that maximizes workers utility keeping G with the first set of parameters is {tau_star_set_1:3.2f}')
             
 
 
