@@ -73,18 +73,18 @@ class OptimalTaxation:
 
         # a. objective function 
         obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        initial_guess = 24 #all hours are spent working 
+        initial_guess = 12 #all hours are spent working 
 
         #c. bounds and constraints 
         bounds = [(0,24)]
-        constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
+        #constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
-        results = optimize.minimize(obj, initial_guess, method='SLSQP', 
-                                    bounds=bounds, constraints=constraints, tol=1e-08)
+        results = optimize.minimize_scalar(obj, method='bounded', 
+                                    bounds=(0,24))
 
         #e. Setting the solution equal to the solution namespace:
-        sol.L = results.x[0]
+        sol.L = results.x
     
         #f. Printing result
         if do_print & CES:
