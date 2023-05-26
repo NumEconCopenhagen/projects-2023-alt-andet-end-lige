@@ -242,13 +242,16 @@ class OptimalTaxation:
         elif do_print:   
             print(f'Government consumption with the first set of parameters is {calc_G:3.2f}')
         else:
-            return G_optimal
+            return calc_G
     
     def optimal_tax_ces(self, extension=False, CES=False, do_print=False, set_2=False): 
+        """ calculate the taxrate keeping G"""
+        par = self.par
+        sol = self.sol
+
         if set_2: 
             def obj(tau):
                 """Objective function to maximize worker utility"""
-                self.par.tau = tau
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES, set_2=set_2)
                 self.solve(CES=CES)
                 return -self.calc_utility(self.sol.L, CES=CES) 
@@ -264,7 +267,7 @@ class OptimalTaxation:
         else: 
             def obj(tau):
                 """Objective function to maximize worker utility"""
-                self.par.tau = tau
+                par.w = 1.0 
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
                 self.solve(CES=CES)
                 return -self.calc_utility(self.sol.L, CES=CES) 
