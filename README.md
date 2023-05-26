@@ -13,4 +13,4 @@ This repository contains
 **Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires no further packages.
 
 **Folder structure:** 
-- Each project is contained in its own folder. The solution to each project consists of a notebook (from which the project is run), a py-file with classes and functions, and a readme-file. All three projects should be run from the notebooks in their respective folders. 
+- Each project is contained in its own folder. The solution to each project consists of a notebook (from which the project is run), a py-file with classes and functions, and a readme-file. All four projects should be run from the notebooks in their respective folders. 
