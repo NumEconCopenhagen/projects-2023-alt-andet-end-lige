@@ -4,7 +4,7 @@ from scipy import optimize
 from scipy.stats import norm
 import numpy as np
 import matplotlib.pyplot as plt
-import ipywidgets as widgets
+import ipywidgets as widgets 
 
 #####################################################################################################
 ############################################# Problem 1 #############################################
