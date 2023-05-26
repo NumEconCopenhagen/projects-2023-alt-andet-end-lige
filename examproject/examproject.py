@@ -58,6 +58,7 @@ class LaborAdjustmentCosts():
         return kappat * lt**(1-self.par.eta) - self.par.w * lt #calculating profits given the formula
     
     def find_optimal_lt(self): # defining the function that finds the optimal lt for each value of kappa
+        """Function that solves for the optimal labor"""
         for i,kappat in enumerate(self.par.kappas): # for loop to iterate over the different values of kappa 
             # Formulate objective function (negative of profit function)
             obj = lambda x: -self.profits(kappat, x)
