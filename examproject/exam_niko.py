@@ -28,13 +28,13 @@ class OptimalTaxation:
         
         #c. solution
         sol.L = np.nan
-        sol.tau_opt = np.nan
+        sol.G_opt = np.nan
 
     def L_opt(self):
         return (-self.par.kappa+np.sqrt(self.par.kappa**2+4*self.par.alpha*(1/self.par.nu)*((1-self.par.tau)*self.par.w)**2))/(2*(1-self.par.tau)*self.par.w)
 
 
-    def calc_utility(self, L, extension=False, CES=False):
+    def calc_utility(self, L, G_CES=0, extension=False, CES=False):
         """ utility function """
         par = self.par
         sol = self.sol
@@ -42,7 +42,7 @@ class OptimalTaxation:
         # a. consumption of market goods and alternative government consumption
         if CES: 
             C = par.kappa + (1 - par.tau) * par.w * L
-            G = par.tau * par.w * self.L_opt()
+            G = G_CES
         elif extension:
             C = par.kappa + (1 - par.tau) * par.w * L
             G = par.tau * par.w * self.L_opt()
@@ -71,14 +71,20 @@ class OptimalTaxation:
         return utility - disutility
 
     
-    def solve(self, extension=False, CES=False, do_print=False):
+    def solve(self, G_CES=0, extension=False, CES=False, do_print=False):
         """ solve model """
         par = self.par
         sol = self.sol
 
         # a. objective function 
-        obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        initial_guess = 12 # initial guess: work 12 hours a day
+        if CES==False:
+            #G_CES = 0 # this is irrelevant if we do not have CES function
+            obj = lambda x: -self.calc_utility(x,G_CES=G_CES,extension=extension, CES=CES)
+            initial_guess = 12 # initial guess: work 12 hours a day
+
+        else:
+            obj = lambda x: -self.calc_utility(x,G_CES=G_CES, extension=extension, CES=CES)
+        
 
         #c. bounds and constraints 
         bounds = (0,24)
@@ -209,26 +215,25 @@ class OptimalTaxation:
             """Objective function to maximize worker utility"""
             self.par.tau = tau
             self.solve(extension=extension)
-            return -self.calc_utility(self.sol.L, extension=extension)
+            return -self.calc_utility(self.sol.L,  extension=extension)
 
         # Call optimizer to maximize the objective function
         results = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
 
         # Get the optimal tax rate
-        sol.tau_opt = results.x
+        tau_star = results.x
 
         # Do print
         if do_print:
-            print(f'The tax rate that maximizes workers utility is {sol.tau_opt:3.2f}')
+            print(f'The tax rate that maximizes workers utility is {tau_star:3.2f}')
         else:
-            return sol.tau_opt
+            return tau_star
         
-    def calc_optimal_government_consumption(self, extension=False, CES=False, do_print=False, set_2=False):
+    def calc_optimal_government_consumption(self, do_print=False, set_2=False):
         """ calculate the government consumption corresponding to tau_star """
         par = self.par
         sol = self.sol
-        par.w = 1.0
-        par.tau = self.optimal_tax_cd(extension=extension)
+        par.tau = self.optimal_tax_cd(extension=True)
 
         # Set alternative parameters:  
         if set_2:
@@ -237,16 +242,14 @@ class OptimalTaxation:
             par.epsilon = 1.0
   
         #Solve the model, and find G
-        self.solve(CES=CES)
-        implied_G= par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
-            
-            
-        if do_print & set_2:
-            print(f'Government consumption with the first set of parameters is {implied_G:3.2f}')
-        elif do_print: 
-            print(f'Government consumption with the second set of parameters is {implied_G:3.2f}')
-        else:
-            return implied_G
+        obj = lambda G: par.tau*par.w*self.solve(G_CES=G,CES=True)-G
+
+        # Solve
+        G_res = optimize.root(obj,x0=[5])
+
+        # Save result
+        sol.G_opt = G_res.x[0]
+
             
 
     def optimal_tax_ces(self, extension=False, CES=False, do_print=False, set_2=False): 
