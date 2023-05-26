@@ -136,6 +136,8 @@ class OptimalTaxation:
         par = self.par
         sol = self.sol
 
+        par.w = 1.0
+        
         # Create empty lists to store results
         L_vec = []
         G_vec = []
