@@ -15,7 +15,7 @@ plt.rcParams.update({'font.size': 10})
 
 class LaborAdjustmentCosts():
     def __init__(self):
-        """Create the model"""
+        """Creates the model"""
         # namespaces
         par = self.par = SimpleNamespace() # namespace for parameters
         sol = self.sol = SimpleNamespace() # namespace for solutions
@@ -70,7 +70,7 @@ class LaborAdjustmentCosts():
 
 
     def calc_H(self, Delta=0.0, K = 3500, do_print=False,extension=False):
-        """Calculating the ex ante expected value of the salon"""
+        """Calculates the ex ante expected value of the salon"""
         h_values = np.zeros(K) #initializing h-values
 
         np.random.seed(1999) # set seed
@@ -131,7 +131,7 @@ class LaborAdjustmentCosts():
     
 
     def estimate_K(self,tol=1e-2,do_print=True,do_plot=True):
-        """Estimate optimal K"""
+        """Estimates optimal K"""
         H_range = np.empty(len(range(500,6500,500)))
         H_K = 0.0
         for i,K in enumerate(range(500,6500,500)):
@@ -194,6 +194,7 @@ class LaborAdjustmentCosts():
         #ax.annotate(f'(Delta,H)=({self.sol.Delta_opt:.3f},{H_opt:.3f})',xy=(self.sol.Delta_opt-0.01,H_opt), xytext=(self.sol.Delta_opt-0.01,H_opt), textcoords='offset points')
         ax.set_xlabel(r'$\Delta$')
         ax.set_ylabel("Ex ante expected value")
+        ax.set_title("$H$ for different values of $\Delta$")
         ax.set_xlim([0,0.2])
         ax.set_ylim([27.5,29.0])
         plt.grid(True)
