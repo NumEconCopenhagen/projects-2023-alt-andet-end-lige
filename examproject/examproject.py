@@ -21,6 +21,7 @@ plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","
 plt.rcParams.update({'font.size': 10})
 
 class LaborAdjustmentCosts():
+    """Class for solving the labor adjustment costs model"""
     def __init__(self):
         """Creates the model"""
         # namespaces
