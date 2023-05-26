@@ -267,7 +267,6 @@ class OptimalTaxation:
         else: 
             def obj(tau):
                 """Objective function to maximize worker utility"""
-                par.w = 1.0 
                 G = self.calc_optimal_government_consumption(extension=extension, CES=CES)
                 self.solve(CES=CES)
                 return -self.calc_utility(self.sol.L, CES=CES) 
