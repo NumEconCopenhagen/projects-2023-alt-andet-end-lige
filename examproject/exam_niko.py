@@ -230,7 +230,7 @@ class OptimalTaxation:
             par.rho = 1.5 
             par.epsilon = 1.0
 
-            
+        #Solve the model using the optimal tax rate.
         par.tau = self.optimal_tax_cd(extension=extension)
         self.solve(CES=CES)
 
