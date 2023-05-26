@@ -226,7 +226,7 @@ class OptimalTaxation:
         """ calculate the government consumption corresponding to tau_star """
         par = self.par
         sol = self.sol
-        #tau = self.optimal_tax_cd(extension=True)
+        # for question 5 we specify tau = self.optimal_tax_cd(extension=True) as model argument
 
         # Set alternative parameters:  
         if set_2:
@@ -257,11 +257,10 @@ class OptimalTaxation:
             par.rho = 1.5 
             par.epsilon = 1.0
 
-
+        # Define objective function
         def obj(tau):
-            self.solve_G(tau)
-            self.solve(G_CES=sol.G_opt,tau_opt=tau,CES=True) # find optimal L given G and tau
-            return -self.calc_utility(self.sol.L, G_CES=sol.G_opt,tau_opt=tau,CES=True)
+                                            #  optimal L given G and tau                                Optimal G          Argument: tau
+            return -self.calc_utility(L=self.solve(G_CES=self.solve_G(tau),tau_opt=tau,CES=True), G_CES=self.solve_G(tau),tau_opt=tau,CES=True)
         
         # Call optimizer to maximize the objective function
         tau_res = optimize.minimize_scalar(obj, bounds=(0, 1), method='bounded')
