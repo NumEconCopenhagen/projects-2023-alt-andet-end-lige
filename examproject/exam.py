@@ -6,10 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 
-
+#####################################################################################################
+############################################# Problem 2 #############################################
+#####################################################################################################
 # importing package to create plots and setting basic, visual settings
-import matplotlib.pyplot as plt
-import ipywidgets as widgets
 plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","grid.linestyle":"-"})
 plt.rcParams.update({'font.size': 10})
 
@@ -60,14 +60,17 @@ class LaborAdjustmentCosts():
             print(f'For kappa = {kappat:.1f} the optimal labor supply is lt = {self.sol.lt[i]:.2f} which yields profits of {self.profits(kappat, self.sol.lt[i]):.2f} \n') #printing results
             
     ############## Question 2 and 3 ################                    
-    def optimal_labor_rule(self,kappat):
+    def optimal_labor_rule(self,kappat): # defining the policy labor demand function as given in the problem
+        """Policy labor demand function"""
         return ((1-self.par.eta) * kappat / self.par.w) ** (1/(self.par.eta))
 
     def profits_func(self,kappat,lt,lt_prev):
+        """Profits function with adjustment costs"""
         return kappat * lt ** (1-self.par.eta) - self.par.w * lt - (lt != lt_prev) * self.par.iota
 
 
     def calc_H(self, Delta=0.0, K = 3500, do_print=False,extension=False):
+        """Calculating the ex ante expected value of the salon"""
         h_values = np.zeros(K) #initializing h-values
 
         np.random.seed(1999) # set seed
@@ -116,7 +119,7 @@ class LaborAdjustmentCosts():
         H = np.mean(h_values)
         
         if do_print==True: 
-            if extension:
+            if extension: # printing results for the extension where Delta is not included
                 print(f'For K={K} the value of H is {H:.3f}\n')
             else:
                 if Delta==0: #printing results for the case where Delta=0
@@ -128,7 +131,7 @@ class LaborAdjustmentCosts():
     
 
     def estimate_K(self,tol=1e-2,do_print=True,do_plot=True):
-
+        """Estimate optimal K"""
         H_range = np.empty(len(range(500,6500,500)))
         H_K = 0.0
         for i,K in enumerate(range(500,6500,500)):
@@ -155,17 +158,10 @@ class LaborAdjustmentCosts():
             plt.grid(True)
             plt.show();            
         
-
-            
-
-
-
-
-
-
     ############## Question 4 ################        
 
     def max_H(self,K=1000):
+        """Function that maximizes H with respect to Delta"""
         Delta0 = 0.1 #initial guess on Delta
         
         # Formulate objective function as the negative of H as we maximize H using a minimizer
@@ -181,7 +177,7 @@ class LaborAdjustmentCosts():
         
 
     def plot_Delta(self,K=1000):
-
+        """Function that plots H as a function of Delta"""
         H_Delta = np.empty(30)
         for i,Delta in enumerate(np.linspace(0,0.2,30)):
             self.par.Delta = Delta
@@ -204,7 +200,9 @@ class LaborAdjustmentCosts():
         plt.show();
    
 
-########################################## Problem 3 ##########################################
+#####################################################################################################
+############################################# Problem 3 #############################################
+#####################################################################################################
 
 class Problem3():
     def __init__(self):
