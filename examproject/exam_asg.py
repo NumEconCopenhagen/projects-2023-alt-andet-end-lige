@@ -67,20 +67,20 @@ class LaborAdjustmentCosts():
         return kappat * lt ** (1-self.par.eta) - self.par.w * lt - (lt != lt_prev) * self.par.iota
 
 
-    def calc_H(self, Delta=0.0, K = 10000, do_print=False,extension=False):
+    def calc_H(self, Delta=0.0, K = 3500, do_print=False,extension=False):
         h_values = np.zeros(K) #initializing h-values
 
+        np.random.seed(1999) # set seed
 
-        np.random.seed(1999)
         for k in range(K): #for loop to iterate over the different shocks
             epsilon = np.random.normal(-0.5 * self.par.sigma_epsilon**2, self.par.sigma_epsilon, size=self.par.T) # Initialize shock series
             
-            #creating variables for the shocks in initial period
+            #creating variables for values in initial period
             lt_prev = 0.0
             kappat_prev = 1.0
             h_k = 0
                     
-            for t in range(self.par.T):
+            for t in range(self.par.T): # loop over each of the T periods in the time horizon
                 #calculating the demand shock in period t
                 kappat = np.exp(self.par.rho * np.log(kappat_prev) + epsilon[t])
                 
@@ -99,6 +99,7 @@ class LaborAdjustmentCosts():
                         else:
                             lt = lt_prev
                 
+                # Compute profits
                 profits = self.profits_func(kappat,lt,lt_prev)
 
                 #Now calculating the discounted value of the salon in time t
@@ -116,45 +117,41 @@ class LaborAdjustmentCosts():
         
         if do_print==True: 
             if extension:
-                print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
                 print(f'For K={K} the value of H is {H:.3f}\n')
             else:
                 if Delta==0: #printing results for the case where Delta=0
-                    print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
                     print(f'For K={K} the value of H is {H:.3f}\n')
                 else: #printing results in other cases
-                    print(f'The ex ante expected value function H is calculated as the mean of the h_values vector.')
                     print(f'For K={K} and Delta={Delta} the value of H is {H:.3f}\n')
 
         return H
     
 
-    def estimate_K(self,tol=1e-3,do_print=True,do_plot=True):
+    def estimate_K(self,tol=1e-2,do_print=True,do_plot=True):
 
-        H_range = np.empty(len(range(500,10000,500)))
-        for i,K in enumerate(range(500,10000,500)):
+        H_range = np.empty(len(range(500,6500,500)))
+        H_K = 0.0
+        for i,K in enumerate(range(500,6500,500)):
             H_range[i] = self.calc_H(K=K)
-            if np.abs(H_range[i]-H_range[i-1])<tol:
+            if np.abs(H_range[i]-H_range[i-1])<tol and H_K==0.0:
                 self.sol.K = K #set optimal K 
                 H_K = H_range[i] # store associated H in local
-                H_range[i:] = H_range[i] # set rest of elements in H eq. to H[i]
-                break
             else:
                 continue
         
         if do_print:
-            print(f'By comparing different values of H in the range between 0 and 10000 with a step size of 500, we choose K to be {K}')
+            print(f'By comparing H for different values of K in the range between 500 and 6000 with a step size of 500, we choose K to be {self.sol.K}')
 
         if do_plot:
             fig = plt.figure(figsize=(7,5))
             ax = fig.add_subplot(1,1,1)
-            ax.plot(range(500,10000,500),H_range, color='green')
+            ax.plot(range(500,6500,500),H_range, color='green')
             ax.scatter(self.sol.K, H_K , color='orange')
-            #ax.annotate(f'Choice of K=({self.sol.K}',xy=(self.sol.K,H_K), xytext=(self.sol.K,H_K), textcoords='offset points')
+            #ax.annotate(f'Choice of K=({self.sol.K}',xy=(self.sol.K*0.8,H_K*1.2), xytext=(self.sol.K*0.8,H_K*1.2), textcoords='offset points')
             ax.set_xlabel("K")
             ax.set_ylabel("Ex ante expected value")
-            ax.set_xlim([500,10000])
-            #ax.set_ylim([27.4,30.7])
+            ax.set_xlim([500,6000])
+            ax.set_ylim([27.3,28.0])
             plt.grid(True)
             plt.show();            
         
