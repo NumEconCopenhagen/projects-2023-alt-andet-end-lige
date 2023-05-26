@@ -19,7 +19,7 @@ class OptimalTaxation:
         par.kappa = 1.0 
         par.nu = 1/(2*16**2)
         par.w = 1.0 
-        par.w_vec = np.linspace(0.5,1.5,100)
+        par.w_vec = np.linspace(0.5,5.0,100)
         par.tau = 0.3
         par.G = 1.0
         par.rho = 1.001
@@ -73,15 +73,15 @@ class OptimalTaxation:
 
         # a. objective function 
         obj = lambda x: -self.calc_utility(x, extension=extension, CES=CES)
-        initial_guess = 12 #all hours are spent working 
+        initial_guess = 12 # initial guess: work 12 hours a day
 
         #c. bounds and constraints 
-        bounds = [(0,24)]
+        bounds = (0,24)
         #constraints = ({'type': 'ineq', 'fun': lambda x: 24-x})
 
         #d. call solver 
         results = optimize.minimize_scalar(obj, method='bounded', 
-                                    bounds=(0,24))
+                                    bounds=bounds)
 
         #e. Setting the solution equal to the solution namespace:
         sol.L = results.x
@@ -90,7 +90,7 @@ class OptimalTaxation:
         if do_print & CES:
             print(f'Optimal labor supply with CES utility function is {sol.L:.2f}')
         elif do_print:
-            print(f'Optimal labor supply with baseline parameters is {sol.L:.2f}')
+            print(f'Optimal labor supply is {sol.L:.2f}')
         else: 
             return sol.L
         
