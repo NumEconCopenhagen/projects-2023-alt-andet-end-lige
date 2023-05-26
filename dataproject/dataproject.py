@@ -11,6 +11,7 @@ plt.rcParams.update({'font.size': 10})
 
 
 def plot_priceindex(df, selected_provinces):
+    """Function to plot the price index of houses over time"""
     # Create a plot
     fig, ax = plt.subplots()
     for province in selected_provinces: 
@@ -26,6 +27,7 @@ def plot_priceindex(df, selected_provinces):
 
 
 def priceindex_widgets(df):
+    """Creating function to create interactive widget that allows us to choose the desired provinces"""
     widgets.interact(plot_priceindex, # creating interactive widget letting us choose multiple desired provinces
                  df=widgets.fixed(df),
                  selected_provinces=widgets.SelectMultiple(description='Provinces', 
@@ -33,6 +35,7 @@ def priceindex_widgets(df):
                                                            value=['Province Byen København'], disabled=False))
 
 def _binscatter(df,province):
+    """Function to plot the correlation between unemployment rate and house prices within provinces as a scatter plot"""
     # Construct dataset for each province
     I = df.loc[df['PROVINCE'] == province,:].copy()
 
@@ -70,6 +73,7 @@ def _binscatter(df,province):
 
 
 def binscatter_widgets(df):
+    """Function to create interactive widget that allows us to choose the desired province in the scatterplot"""
     widgets.interact(_binscatter, # creating interactive widget letting us choose the desired province
         df = widgets.fixed(df),
         province = widgets.Dropdown(description='Province', 

@@ -79,12 +79,12 @@ class HouseholdSpecializationModelClass:
         TM = LM+HM
         TF = LF+HF
         
-        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_)
+        disutility = par.nu*(TM**epsilon_/epsilon_+TF**epsilon_/epsilon_) # defining the disutility term
         
-        if extension:
+        if extension: # if we run the extended model, we add the extra term of each gender's disutility of home production
             disutility+=par.kappa*HM+(1-par.kappa)*HF
 
-        return utility - disutility
+        return utility - disutility # returning the net utility
 
     def solve_discrete(self,do_print=False, extension=False):
         """ solve model discretely """
@@ -182,7 +182,7 @@ class HouseholdSpecializationModelClass:
 
 
     def plot(self,discrete=True, extension=False):
-
+        """ Plots relative hours of home production against the relative wage"""
         #Create empty lists of log-ratios
         logHF_HM = np.zeros(5)
         logwF_wM = np.zeros(5)
