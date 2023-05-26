@@ -229,11 +229,10 @@ class OptimalTaxation:
             par.sigma = 1.5 
             par.rho = 1.5 
             par.epsilon = 1.0
-            par.tau = self.optimal_tax_cd(extension=extension)
-            self.solve(CES=CES)
-        else:
-            par.tau = self.optimal_tax_cd(extension=extension)
-            self.solve(CES=CES)
+
+            
+        par.tau = self.optimal_tax_cd(extension=extension)
+        self.solve(CES=CES)
 
         # Calculate the government consumption
         calc_G = par.tau * par.w * sol.L * ((1 - par.tau) * par.w)
