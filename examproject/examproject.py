@@ -216,6 +216,7 @@ class LaborAdjustmentCosts():
 #####################################################################################################
 
 class Problem3():
+    """Class for solving the global optimizer with multi-start"""
     def __init__(self):
         """Create model"""
         par = self.par = SimpleNamespace() # define simplenamespace for parameters
