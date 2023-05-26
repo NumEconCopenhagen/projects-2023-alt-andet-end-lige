@@ -77,13 +77,7 @@ class OptimalTaxation:
         sol = self.sol
 
         # a. objective function 
-        if CES==False:
-            #G_CES = 0 # this is irrelevant if we do not have CES function
-            obj = lambda x: -self.calc_utility(x,G_CES=G_CES,extension=extension, CES=CES)
-            initial_guess = 12 # initial guess: work 12 hours a day
-
-        else:
-            obj = lambda x: -self.calc_utility(x,G_CES=G_CES, extension=extension, CES=CES)
+        obj = lambda x: -self.calc_utility(x,G_CES=G_CES, extension=extension, CES=CES)
         
 
         #c. bounds and constraints 
@@ -97,9 +91,7 @@ class OptimalTaxation:
         sol.L = results.x
     
         #f. Printing result
-        if do_print & CES:
-            print(f'Optimal labor supply with CES utility function is {sol.L:.2f}')
-        elif do_print:
+        if do_print:
             print(f'Optimal labor supply is {sol.L:.2f}')
         else: 
             return sol.L
