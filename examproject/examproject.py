@@ -54,6 +54,7 @@ class LaborAdjustmentCosts():
     ############## Question 1 ################
     
     def profits(self, kappat, lt): # defining the profits function
+        """Calculates profits without adjustment costs"""
         return kappat * lt**(1-self.par.eta) - self.par.w * lt #calculating profits given the formula
     
     def find_optimal_lt(self): # defining the function that finds the optimal lt for each value of kappa
