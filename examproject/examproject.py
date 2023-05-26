@@ -4,7 +4,7 @@ from scipy import optimize
 from scipy.stats import norm
 import numpy as np
 import matplotlib.pyplot as plt
-import ipywidgets as widgets
+import ipywidgets as widgets 
 
 #####################################################################################################
 ############################################# Problem 1 #############################################
@@ -21,6 +21,7 @@ plt.rcParams.update({"axes.grid":True,"grid.color":"black","grid.alpha":"0.25","
 plt.rcParams.update({'font.size': 10})
 
 class LaborAdjustmentCosts():
+    """Class for solving the labor adjustment costs model"""
     def __init__(self):
         """Creates the model"""
         # namespaces
@@ -53,9 +54,11 @@ class LaborAdjustmentCosts():
     ############## Question 1 ################
     
     def profits(self, kappat, lt): # defining the profits function
+        """Calculates profits without adjustment costs"""
         return kappat * lt**(1-self.par.eta) - self.par.w * lt #calculating profits given the formula
     
     def find_optimal_lt(self): # defining the function that finds the optimal lt for each value of kappa
+        """Function that solves for the optimal labor"""
         for i,kappat in enumerate(self.par.kappas): # for loop to iterate over the different values of kappa 
             # Formulate objective function (negative of profit function)
             obj = lambda x: -self.profits(kappat, x)
@@ -213,6 +216,7 @@ class LaborAdjustmentCosts():
 #####################################################################################################
 
 class Problem3():
+    """Class for solving the global optimizer with multi-start"""
     def __init__(self):
         """Create model"""
         par = self.par = SimpleNamespace() # define simplenamespace for parameters
