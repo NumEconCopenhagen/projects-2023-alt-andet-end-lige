@@ -10,6 +10,9 @@ This repository contains
 3. Model project. 
 - We numerically solve the Principal-Agent model with adverse selection. Initially we let the principal offer two kinds of workers with different productivity the same contract. We then allow for signalling of productivity through conditioning on the number of years of education and analyze the implications for the model. Lastly, we allow for *n* types of workers and *n* types of contracts and analyze the implications of this extension.
 
+4. Exam project.
+- We solve the three problems given in the exam hand-out. 
+
 **Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires no further packages.
 
 **Folder structure:** 
