@@ -51,7 +51,7 @@ class Problem3():
         return self.griewank_(x[0],x[1])
     
 
-
+    
     def global_optimizer(self, do_print=True, do_plot=False):
         """Implement the refined global optimizer with multi-start"""
         # Call on namespace
